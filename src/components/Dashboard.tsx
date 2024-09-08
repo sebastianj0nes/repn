@@ -133,8 +133,8 @@ export default function Dashboard() {
 								asChild
 								className="bg-white text-green-500 hover:bg-green-100"
 							>
-								<Link href="/nutrition" className="flex items-center">
-									Log Meal <ChevronRight className="ml-2 h-4 w-4" />
+								<Link href="/progress" className="flex items-center">
+									View Progreess <ChevronRight className="ml-2 h-4 w-4" />
 								</Link>
 							</MotionButton>
 						</div>
