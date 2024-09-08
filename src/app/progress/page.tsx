@@ -1,80 +1,91 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dumbbell, Smile, Frown, Meh } from 'lucide-react'
 import Image from 'next/image'
-
-// Mock data for demonstration
-const workoutDays = ['2024-06-01', '2024-06-03', '2024-06-05', '2024-06-07', '2024-06-10']
-const workoutDetails = {
-  '2024-06-01': { 
-    muscleGroup: 'Chest', 
-    feeling: 'good', 
-    sotd: '3x12 Bench Press',
-    exercises: [
-      { name: 'Bench Press', sets: [{ weight: 80, reps: 12 }, { weight: 85, reps: 10 }, { weight: 90, reps: 8 }] },
-      { name: 'Incline Dumbbell Press', sets: [{ weight: 30, reps: 12 }, { weight: 32.5, reps: 10 }, { weight: 35, reps: 8 }] },
-      { name: 'Cable Flyes', sets: [{ weight: 15, reps: 15 }, { weight: 17.5, reps: 12 }, { weight: 20, reps: 10 }] },
-      { name: 'Pushups', sets: [{ weight: 0, reps: 20 }, { weight: 0, reps: 18 }, { weight: 0, reps: 15 }] }
-    ],
-    image: '/placeholder.svg'
-  },
-  '2024-06-03': { 
-    muscleGroup: 'Legs', 
-    feeling: 'great', 
-    sotd: '4x8 Squats',
-    exercises: [
-      { name: 'Squats', sets: [{ weight: 100, reps: 8 }, { weight: 110, reps: 8 }, { weight: 120, reps: 8 }, { weight: 130, reps: 6 }] },
-      { name: 'Leg Press', sets: [{ weight: 150, reps: 12 }, { weight: 170, reps: 10 }, { weight: 190, reps: 8 }] },
-      { name: 'Romanian Deadlifts', sets: [{ weight: 80, reps: 10 }, { weight: 90, reps: 10 }, { weight: 100, reps: 8 }] },
-      { name: 'Calf Raises', sets: [{ weight: 100, reps: 15 }, { weight: 110, reps: 12 }, { weight: 120, reps: 10 }] }
-    ],
-    image: '/placeholder.svg'
-  },
-  '2024-06-05': { 
-    muscleGroup: 'Back', 
-    feeling: 'okay', 
-    sotd: '3x10 Deadlifts',
-    exercises: [
-      { name: 'Deadlifts', sets: [{ weight: 120, reps: 10 }, { weight: 130, reps: 10 }, { weight: 140, reps: 8 }] },
-      { name: 'Pull-ups', sets: [{ weight: 0, reps: 12 }, { weight: 0, reps: 10 }, { weight: 0, reps: 8 }] },
-      { name: 'Barbell Rows', sets: [{ weight: 70, reps: 12 }, { weight: 80, reps: 10 }, { weight: 90, reps: 8 }] },
-      { name: 'Lat Pulldowns', sets: [{ weight: 60, reps: 12 }, { weight: 70, reps: 10 }, { weight: 80, reps: 8 }] }
-    ],
-    image: '/placeholder.svg'
-  },
-  '2024-06-07': { 
-    muscleGroup: 'Arms', 
-    feeling: 'tired', 
-    sotd: '3x15 Bicep Curls',
-    exercises: [
-      { name: 'Bicep Curls', sets: [{ weight: 15, reps: 15 }, { weight: 17.5, reps: 12 }, { weight: 20, reps: 10 }] },
-      { name: 'Tricep Pushdowns', sets: [{ weight: 25, reps: 15 }, { weight: 30, reps: 12 }, { weight: 35, reps: 10 }] },
-      { name: 'Hammer Curls', sets: [{ weight: 12.5, reps: 12 }, { weight: 15, reps: 10 }, { weight: 17.5, reps: 8 }] },
-      { name: 'Skull Crushers', sets: [{ weight: 30, reps: 12 }, { weight: 35, reps: 10 }, { weight: 40, reps: 8 }] }
-    ],
-    image: '/placeholder.svg'
-  },
-  '2024-06-10': { 
-    muscleGroup: 'Shoulders', 
-    feeling: 'pumped', 
-    sotd: '4x12 Shoulder Press',
-    exercises: [
-      { name: 'Shoulder Press', sets: [{ weight: 50, reps: 12 }, { weight: 55, reps: 10 }, { weight: 60, reps: 8 }, { weight: 65, reps: 6 }] },
-      { name: 'Lateral Raises', sets: [{ weight: 10, reps: 15 }, { weight: 12.5, reps: 12 }, { weight: 15, reps: 10 }] },
-      { name: 'Front Raises', sets: [{ weight: 10, reps: 12 }, { weight: 12.5, reps: 10 }, { weight: 15, reps: 8 }] },
-      { name: 'Reverse Flyes', sets: [{ weight: 7.5, reps: 15 }, { weight: 10, reps: 12 }, { weight: 12.5, reps: 10 }] }
-    ],
-    image: '/placeholder.svg'
-  },
-}
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Database } from '@/lib/database.types'
+import { UserContext } from '../UserContext'
 
 export default function ProgressPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const detailsRef = useRef<HTMLDivElement>(null)
+  const [workoutDays, setWorkoutDays] = useState<string[]>([])
+  const [workoutDetails, setWorkoutDetails] = useState<Record<string, any>>({})
+  const { session } = useContext(UserContext)
+  const supabase = createClientComponentClient<Database>()
+
+  useEffect(() => {
+    const fetchWorkouts = async () => {
+      if (!session?.user) return
+
+      const { data: workouts, error } = await supabase
+        .from('workouts')
+        .select(`
+          id,
+          date,
+          muscle_group,
+          feeling,
+          sotd,
+          image_url,
+          exercises (
+            id,
+            name,
+            sets
+          )
+        `)
+        .eq('user_id', session.user.id)
+        .order('date', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching workouts:', error)
+        return
+      }
+
+      const days = workouts.map(workout => workout.date.split('T')[0])
+      setWorkoutDays(days)
+
+      const details: Record<string, any> = {}
+      for (const workout of workouts) {
+        const dateKey = workout.date.split('T')[0]
+        let imageUrl = null
+
+        if (workout.image_url) {
+          try {
+            const { data, error } = await supabase
+              .storage
+              .from('users-workout-img')
+              .createSignedUrl(workout.image_url, 60 * 60 * 24 * 7) // URL valid for 7 days
+
+            if (error) {
+              console.error('Error creating signed URL:', error)
+            } else if (data) {
+              imageUrl = data.signedUrl
+            }
+          } catch (error) {
+            console.error('Error creating signed URL:', error)
+          }
+        }
+
+        details[dateKey] = {
+          muscleGroup: workout.muscle_group,
+          feeling: workout.feeling,
+          sotd: workout.sotd,
+          exercises: workout.exercises.map((exercise: any) => ({
+            name: exercise.name,
+            sets: JSON.parse(exercise.sets)
+          })),
+          image: imageUrl
+        }
+      }
+      console.log('Workout details:', details)
+      setWorkoutDetails(details)
+    };
+
+    fetchWorkouts();
+  }, [session.user, supabase]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -94,7 +105,15 @@ export default function ProgressPage() {
   const selectedDateString = selectedDate ? 
     `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` 
     : undefined
-  const workoutDetail = selectedDateString ? workoutDetails[selectedDateString as keyof typeof workoutDetails] : null
+  const workoutDetail = selectedDateString ? workoutDetails[selectedDateString] : null
+
+  if (!session?.user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)]">
+        <p className="text-xl text-muted-foreground">Please log in to view your progress</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] pb-16">
@@ -159,7 +178,7 @@ export default function ProgressPage() {
                             <strong>Set of the day:</strong> {workoutDetail.sotd}
                           </div>
                           <div className="space-y-4">
-                            {workoutDetail.exercises.map((exercise, index) => (
+                            {workoutDetail.exercises.map((exercise: { name: string; sets: any[] }, index: number) => (
                               <motion.div 
                                 key={index}
                                 initial={{ opacity: 0, x: -20 }}
@@ -186,13 +205,23 @@ export default function ProgressPage() {
                             transition={{ duration: 0.5 }}
                             className="relative w-full h-64 md:h-full rounded-lg overflow-hidden"
                           >
-                            <Image
-                              src={workoutDetail.image}
-                              alt="Workout selfie"
-                              layout="fill"
-                              objectFit="cover"
-                              className="rounded-lg"
-                            />
+                            <div className="relative w-full h-64 md:h-full">
+                              {workoutDetail.image ? (
+                                <Image
+                                  src={workoutDetail.image}
+                                  alt="Workout selfie"
+                                  fill
+                                  className="object-cover rounded-lg"
+                                />
+                              ) : (
+                                <Image
+                                  src="/placeholder.svg"
+                                  alt="Placeholder"
+                                  fill
+                                  className="object-cover rounded-lg"
+                                />
+                              )}
+                            </div>
                           </motion.div>
                         </div>
                       </div>
