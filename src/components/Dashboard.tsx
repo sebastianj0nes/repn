@@ -134,7 +134,7 @@ export default function Dashboard() {
 								className="bg-white text-green-500 hover:bg-green-100"
 							>
 								<Link href="/progress" className="flex items-center">
-									View Progreess <ChevronRight className="ml-2 h-4 w-4" />
+									View Progress <ChevronRight className="ml-2 h-4 w-4" />
 								</Link>
 							</MotionButton>
 						</div>
