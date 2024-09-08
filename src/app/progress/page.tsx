@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,7 +33,11 @@ export default function ProgressPage() {
           exercises (
             id,
             name,
-            sets
+            exercise_sets (
+              set_number,
+              weight,
+              reps
+            )
           )
         `)
         .eq('user_id', session.user.id)
@@ -44,12 +48,12 @@ export default function ProgressPage() {
         return
       }
 
-      const days = workouts.map(workout => workout.date.split('T')[0])
+      const days = workouts.map(workout => workout.date)
       setWorkoutDays(days)
 
       const details: Record<string, any> = {}
       for (const workout of workouts) {
-        const dateKey = workout.date.split('T')[0]
+        const dateKey = workout.date
         let imageUrl = null
 
         if (workout.image_url) {
@@ -75,17 +79,16 @@ export default function ProgressPage() {
           sotd: workout.sotd,
           exercises: workout.exercises.map((exercise: any) => ({
             name: exercise.name,
-            sets: JSON.parse(exercise.sets)
+            sets: exercise.exercise_sets.sort((a: any, b: any) => a.set_number - b.set_number)
           })),
           image: imageUrl
         }
       }
-      console.log('Workout details:', details)
       setWorkoutDetails(details)
     };
 
     fetchWorkouts();
-  }, [session.user, supabase]);
+  }, [session?.user, supabase]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -103,7 +106,7 @@ export default function ProgressPage() {
   }
 
   const selectedDateString = selectedDate ? 
-    `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` 
+    selectedDate.toISOString().split('T')[0]
     : undefined
   const workoutDetail = selectedDateString ? workoutDetails[selectedDateString] : null
 
@@ -116,7 +119,7 @@ export default function ProgressPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] pb-16">
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] pb-16">
       <div className="container mx-auto px-4 py-6 flex-grow flex flex-col overflow-hidden">
         <h1 className="text-3xl font-bold text-primary mb-6">Your Progress</h1>
         <div className="flex-grow flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6 overflow-hidden">
@@ -161,9 +164,9 @@ export default function ProgressPage() {
                         {selectedDate ? formatDate(selectedDate) : 'No date selected'}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row gap-6">
-                        <div className="w-full md:w-2/3 space-y-6">
+                    <CardContent className="p-4 md:p-6">
+                      <div className="flex flex-col gap-6">
+                        <div className="w-full space-y-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
                               <Dumbbell className="h-6 w-6 text-secondary" />
@@ -177,52 +180,50 @@ export default function ProgressPage() {
                           <div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
                             <strong>Set of the day:</strong> {workoutDetail.sotd}
                           </div>
-                          <div className="space-y-4">
-                            {workoutDetail.exercises.map((exercise: { name: string; sets: any[] }, index: number) => (
-                              <motion.div 
-                                key={index}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3, delay: index * 0.1 }}
-                                className="bg-gray-50 p-4 rounded-md shadow"
-                              >
-                                <h3 className="font-semibold text-lg mb-2">{exercise.name}</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                  {exercise.sets.map((set, setIndex) => (
-                                    <div key={setIndex} className="bg-white p-2 rounded border border-gray-200">
-                                      <span className="font-medium">Set {setIndex + 1}:</span> {set.weight}kg x {set.reps}
-                                    </div>
-                                  ))}
-                                </div>
-                              </motion.div>
-                            ))}
-                          </div>
                         </div>
-                        <div className="w-full md:w-1/3">
+                        <div className="w-full">
                           <motion.div
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.5 }}
-                            className="relative w-full h-64 md:h-full rounded-lg overflow-hidden"
+                            className="relative w-full aspect-[3/4] md:aspect-[16/9] rounded-lg overflow-hidden"
                           >
-                            <div className="relative w-full h-64 md:h-full">
-                              {workoutDetail.image ? (
-                                <Image
-                                  src={workoutDetail.image}
-                                  alt="Workout selfie"
-                                  fill
-                                  className="object-cover rounded-lg"
-                                />
-                              ) : (
-                                <Image
-                                  src="/placeholder.svg"
-                                  alt="Placeholder"
-                                  fill
-                                  className="object-cover rounded-lg"
-                                />
-                              )}
-                            </div>
+                            {workoutDetail.image ? (
+                              <Image
+                                src={workoutDetail.image}
+                                alt="Workout selfie"
+                                fill
+                                className="object-cover rounded-lg"
+                              />
+                            ) : (
+                              <Image
+                                src="/placeholder.svg"
+                                alt="Placeholder"
+                                fill
+                                className="object-cover rounded-lg"
+                              />
+                            )}
                           </motion.div>
+                        </div>
+                        <div className="w-full space-y-4">
+                          {workoutDetail.exercises.map((exercise: { name: string; sets: any[] }, index: number) => (
+                            <motion.div 
+                              key={index}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.3, delay: index * 0.1 }}
+                              className="bg-gray-50 p-4 rounded-md shadow"
+                            >
+                              <h3 className="font-semibold text-lg mb-2">{exercise.name}</h3>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {exercise.sets.map((set: any, setIndex: number) => (
+                                  <div key={setIndex} className="bg-white p-2 rounded border border-gray-200">
+                                    <span className="font-medium">Set {set.set_number}:</span> {set.weight}kg x {set.reps}
+                                  </div>
+                                ))}
+                              </div>
+                            </motion.div>
+                          ))}
                         </div>
                       </div>
                     </CardContent>

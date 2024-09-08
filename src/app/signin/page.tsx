@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,12 +8,24 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useSession } from '@supabase/auth-helpers-react'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const router = useRouter()
   const supabase = createClientComponentClient()
+  const session = useSession()
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        router.push('/')
+      }
+    }
+    checkSession()
+  }, [supabase.auth, router])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,6 +59,11 @@ export default function SignIn() {
         alert('An unknown error occurred during Google sign-in')
       }
     }
+  }
+
+  // If the user is already signed in, don't render the sign-in form
+  if (session) {
+    return null
   }
 
   return (

@@ -64,7 +64,7 @@ export default function NewWorkoutPage() {
     })
   }, [buttonControls])
 
-  const muscleGroups = ["chest", "back", "legs", "shoulders", "arms", "core"]
+  const muscleGroups = ["Chest", "Back", "Legs", "Shoulders", "Arms", "Core"]
 
   const toggleMuscleGroup = (group: string) => {
     setWorkout(prev => ({
@@ -133,6 +133,8 @@ export default function NewWorkoutPage() {
       return
     }
 
+    const supabase = createClientComponentClient<Database>()
+
     try {
       let image_url = null
       if (image) {
@@ -160,34 +162,24 @@ export default function NewWorkoutPage() {
       const setOfTheDay = workout.exercises.flatMap(ex => ex.sets).find(set => set.isSetOfTheDay)
       const sotd = setOfTheDay ? `${setOfTheDay.weight}x${setOfTheDay.reps} ${workout.exercises.find(ex => ex.sets.includes(setOfTheDay))?.name}` : ''
 
-      const { data: workoutData, error: workoutError } = await supabase
-        .from('workouts')
-        .insert({
-          user_id: session.user.id,
-          date: new Date().toISOString(),
-          muscle_group: workout.muscleGroups.join(', '),
-          feeling: workout.feeling,
-          sotd,
-          image_url
-        })
-        .select()
-
-      if (workoutError) throw workoutError
-
-      const exercisesData = workout.exercises.flatMap((exercise, index) => 
-        exercise.sets.map(set => ({
-          workout_id: workoutData[0].id,
+      // Start a transaction
+      const { data, error } = await supabase.rpc('create_full_workout', {
+        p_user_id: session.user.id,
+        p_date: new Date().toISOString().split('T')[0], // Get only the date part
+        p_muscle_group: workout.muscleGroups.join(', '),
+        p_feeling: workout.feeling,
+        p_sotd: sotd,
+        p_image_url: image_url,
+        p_exercises: workout.exercises.map(exercise => ({
           name: exercise.name,
-          sets: JSON.stringify([set]),
-          order: index
+          sets: exercise.sets.map(set => ({
+            weight: parseFloat(set.weight),
+            reps: parseInt(set.reps)
+          }))
         }))
-      )
+      })
 
-      const { error: exercisesError } = await supabase
-        .from('exercises')
-        .insert(exercisesData)
-
-      if (exercisesError) throw exercisesError
+      if (error) throw error
 
       setIsFinished(true)
     } catch (error) {

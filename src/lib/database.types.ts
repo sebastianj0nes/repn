@@ -1,6 +1,6 @@
-export interface Database {
+export type Database = {
     public: {
-      Tables: {
+      tables: {
         workouts: {
           Row: {
             id: string
@@ -9,9 +9,6 @@ export interface Database {
             muscle_group: string
             feeling: string
             sotd: string
-            image_url: string | null
-            created_at: string
-            image_path: string | null
           }
           Insert: {
             user_id: string
@@ -19,19 +16,13 @@ export interface Database {
             muscle_group: string
             feeling: string
             sotd: string
-            image_url?: string | null
-            image_path?: string | null
           }
           Update: {
-            id?: string
             user_id?: string
             date?: string
             muscle_group?: string
             feeling?: string
             sotd?: string
-            image_url?: string | null
-            created_at?: string
-            image_path?: string | null
           }
         }
         exercises: {
@@ -39,24 +30,37 @@ export interface Database {
             id: string
             workout_id: string
             name: string
-            sets: string // This will be a JSON string
-            order: number
           }
           Insert: {
             workout_id: string
             name: string
-            sets: string
-            order: number
           }
           Update: {
-            id?: string
             workout_id?: string
             name?: string
-            sets?: string
-            order?: number
           }
         }
-        // Add other tables as needed
+        exercise_sets: {
+          Row: {
+            id: string
+            exercise_id: string
+            set_number: number
+            weight: number
+            reps: number
+          }
+          Insert: {
+            exercise_id: string
+            set_number: number
+            weight: number
+            reps: number
+          }
+          Update: {
+            exercise_id?: string
+            set_number?: number
+            weight?: number
+            reps?: number
+          }
+        }
       }
     }
   }
