@@ -592,7 +592,7 @@ export default function NewWorkoutPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 h-[calc(100vh-4rem)] overflow-auto">
+    <div className="container mx-auto px-4 py-6 h-[calc(100vh-4rem)] overflow-auto pb-20">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
         Log Your Workout
       </h1>
