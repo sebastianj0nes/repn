@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useContext } from 'react'
+import { useState, useRef, useEffect, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,12 +48,12 @@ export default function ProgressPage() {
         return
       }
 
-      const days = workouts.map(workout => workout.date)
+      const days = workouts.map(workout => workout.date.split('T')[0])
       setWorkoutDays(days)
 
       const details: Record<string, any> = {}
       for (const workout of workouts) {
-        const dateKey = workout.date
+        const dateKey = workout.date.split('T')[0]
         let imageUrl = null
 
         if (workout.image_url) {
@@ -79,11 +79,16 @@ export default function ProgressPage() {
           sotd: workout.sotd,
           exercises: workout.exercises.map((exercise: any) => ({
             name: exercise.name,
-            sets: exercise.exercise_sets.sort((a: any, b: any) => a.set_number - b.set_number)
+            sets: Array.isArray(exercise.exercise_sets) 
+              ? exercise.exercise_sets 
+              : (typeof exercise.exercise_sets === 'string' 
+                ? JSON.parse(exercise.exercise_sets) 
+                : [])
           })),
           image: imageUrl
         }
       }
+      console.log('Workout details:', details)
       setWorkoutDetails(details)
     };
 
@@ -106,7 +111,7 @@ export default function ProgressPage() {
   }
 
   const selectedDateString = selectedDate ? 
-    selectedDate.toISOString().split('T')[0]
+    `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` 
     : undefined
   const workoutDetail = selectedDateString ? workoutDetails[selectedDateString] : null
 
@@ -216,11 +221,23 @@ export default function ProgressPage() {
                             >
                               <h3 className="font-semibold text-lg mb-2">{exercise.name}</h3>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {exercise.sets.map((set: any, setIndex: number) => (
-                                  <div key={setIndex} className="bg-white p-2 rounded border border-gray-200">
-                                    <span className="font-medium">Set {set.set_number}:</span> {set.weight}kg x {set.reps}
-                                  </div>
-                                ))}
+                                {exercise.sets.reduce((acc: JSX.Element[], set: any, setIndex: number) => {
+                                  if (setIndex % 2 === 0) {
+                                    acc.push(
+                                      <div key={setIndex} className="flex flex-col sm:flex-row gap-2">
+                                        <div className="flex-1 bg-white p-2 rounded border border-gray-200">
+                                          <span className="font-medium">Set {setIndex + 1}:</span> {set.weight}kg x {set.reps}
+                                        </div>
+                                        {exercise.sets[setIndex + 1] && (
+                                          <div className="flex-1 bg-white p-2 rounded border border-gray-200">
+                                            <span className="font-medium">Set {setIndex + 2}:</span> {exercise.sets[setIndex + 1].weight}kg x {exercise.sets[setIndex + 1].reps}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+                                  return acc;
+                                }, [])}
                               </div>
                             </motion.div>
                           ))}

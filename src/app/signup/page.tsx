@@ -107,7 +107,7 @@ export default function SignUp() {
             <Button variant="outline" className="w-full" onClick={handleGoogleSignUp}>
               Sign up with Google
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="text-center text-sm">
               Already have an account?{' '}
               <Link href="/signin" className="text-secondary hover:underline">
                 Sign in

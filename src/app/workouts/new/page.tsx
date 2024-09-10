@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star } from 'lucide-react'
+import { Progress } from "@/components/ui/progress"
+import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Confetti from 'react-confetti'
 import Link from 'next/link'
@@ -32,6 +33,16 @@ interface Workout {
   feeling: 'great' | 'okay' | 'bad';
 }
 
+const muscleGroups = [
+  { name: 'Chest', icon: Heart },
+  { name: 'Back', icon: Dumbbell },
+  { name: 'Legs', icon: Footprints },
+  { name: 'Shoulders', icon: Footprints },
+  { name: 'Arms', icon: Footprints },
+  { name: 'Core', icon: Brain },
+  { name: 'Cardio', icon: Footprints },
+]
+
 export default function NewWorkoutPage() {
   const [step, setStep] = useState(1)
   const [workout, setWorkout] = useState<Workout>({ muscleGroups: [], exercises: [], feeling: 'okay' })
@@ -39,11 +50,14 @@ export default function NewWorkoutPage() {
   const [isFinished, setIsFinished] = useState(false)
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageError, setImageError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const [session, setSession] = useState<any>(null)
   const supabase = createClientComponentClient<Database>()
   const buttonControls = useAnimation()
+  const [progress, setProgress] = useState(0)
+  const progressControls = useAnimation()
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -62,17 +76,21 @@ export default function NewWorkoutPage() {
         ease: "easeInOut"
       }
     })
-  }, [buttonControls])
 
-  const muscleGroups = ["Chest", "Back", "Legs", "Shoulders", "Arms", "Core"]
+    progressControls.start({
+      width: `${progress}%`,
+      transition: { duration: 0.5, ease: "easeInOut" }
+    })
+  }, [buttonControls, progressControls, progress])
 
   const toggleMuscleGroup = (group: string) => {
-    setWorkout(prev => ({
-      ...prev,
-      muscleGroups: prev.muscleGroups.includes(group)
+    setWorkout(prev => {
+      const newMuscleGroups = prev.muscleGroups.includes(group)
         ? prev.muscleGroups.filter(g => g !== group)
         : [...prev.muscleGroups, group]
-    }))
+      setProgress(newMuscleGroups.length > 0 ? 20 : 0)
+      return { ...prev, muscleGroups: newMuscleGroups }
+    })
   }
 
   const handleExerciseNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +124,7 @@ export default function NewWorkoutPage() {
         exercises: [...prev.exercises, currentExercise]
       }))
       setCurrentExercise({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
+      setProgress(prev => Math.min(prev + 20, 80))
     }
   }
 
@@ -115,7 +134,18 @@ export default function NewWorkoutPage() {
       setImage(file)
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
+        const result = reader.result as string
+        if (result.startsWith('data:image')) {
+          setImagePreview(result)
+          setImageError(null)
+        } else {
+          setImageError('Invalid image format')
+          setImagePreview(null)
+        }
+      }
+      reader.onerror = () => {
+        setImageError('Error reading file')
+        setImagePreview(null)
       }
       reader.readAsDataURL(file)
     }
@@ -182,6 +212,7 @@ export default function NewWorkoutPage() {
       if (error) throw error
 
       setIsFinished(true)
+      setProgress(100)
     } catch (error) {
       console.error('Error submitting workout:', error)
       alert('Failed to log workout. Please try again.')
@@ -199,32 +230,45 @@ export default function NewWorkoutPage() {
     }
   }
 
+  const goBack = () => {
+    if (step > 1) {
+      setStep(step - 1)
+    }
+  }
+
   const renderStep = () => {
     switch (step) {
       case 1:
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Workout Details</CardTitle>
+              <CardTitle>Choose Muscle Groups</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col space-y-2">
-                <Label>Muscle Groups</Label>
-                <div className="flex flex-wrap gap-2">
-                  {muscleGroups.map(group => (
-                    <Button
-                      key={group}
-                      onClick={() => toggleMuscleGroup(group)}
-                      variant={workout.muscleGroups.includes(group) ? "default" : "outline"}
-                    >
-                      {group}
-                    </Button>
-                  ))}
-                </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {muscleGroups.map((group) => (
+                  <Button
+                    key={group.name}
+                    onClick={() => toggleMuscleGroup(group.name)}
+                    variant={workout.muscleGroups.includes(group.name) ? "default" : "outline"}
+                    className={`h-24 flex flex-col items-center justify-center ${
+                      workout.muscleGroups.includes(group.name) ? 'bg-blue-500 text-white' : ''
+                    }`}
+                  >
+                    <group.icon className="h-8 w-8 mb-2" />
+                    {group.name}
+                  </Button>
+                ))}
               </div>
-              <Button onClick={() => setStep(2)} className="w-full">
-                Next <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
+              <motion.div animate={buttonControls}>
+                <Button 
+                  onClick={() => setStep(2)} 
+                  className="w-full mt-4"
+                  disabled={workout.muscleGroups.length === 0}
+                >
+                  Next <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </motion.div>
             </CardContent>
           </Card>
         )
@@ -288,10 +332,10 @@ export default function NewWorkoutPage() {
                   <Plus className="mr-2 h-4 w-4" /> Add Set
                 </Button>
                 <Button onClick={() => addSet(true)} variant="outline" className="w-1/2">
-                  <Plus className="mr-2 h-4 w-4" /> Add Dropset
+                  <Zap className="mr-2 h-4 w-4" /> Add Dropset
                 </Button>
               </div>
-              <Button onClick={saveExercise} className="w-full bg-green-500 hover:bg-green-600">
+              <Button onClick={saveExercise} className="w-full bg-green-500 hover:bg-green-600 text-white">
                 <Check className="mr-2 h-4 w-4" /> Save Exercise
               </Button>
               {workout.exercises.length > 0 && (
@@ -311,18 +355,27 @@ export default function NewWorkoutPage() {
             <CardContent className="space-y-4">
               <div className="max-h-60 overflow-y-auto">
                 {workout.exercises.map((exercise, index) => (
-                  <div key={index} className="mb-2 p-2 bg-secondary rounded-lg">
-                    <h3 className="font-bold">{exercise.name}</h3>
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="mb-2 p-2 bg-gray-100 rounded-lg"
+                  >
+                    <h3 className="font-bold text-lg flex items-center">
+                      <Dumbbell className="mr-2 h-5 w-5 text-gray-600" />
+                      {exercise.name}
+                    </h3>
                     <ul className="list-disc pl-5 text-sm">
                       {exercise.sets.map((set, setIndex) => (
                         <li key={setIndex} className="flex items-center space-x-2">
                           <span>{set.weight}kg x {set.reps}</span>
-                          {set.isDropSet && <span className="text-xs bg-blue-500 text-white px-1 rounded">Drop</span>}
+                          {set.isDropSet && <Zap className="h-4 w-4 text-blue-500" />}
                           {set.isSetOfTheDay && <Star className="h-4 w-4 text-yellow-500" />}
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               <Button onClick={() => setStep(4)} className="w-full">
@@ -335,7 +388,7 @@ export default function NewWorkoutPage() {
         return (
           <Card>
             <CardHeader>
-              <CardTitle>How did your workout go?</CardTitle>
+              <CardTitle>How was your workout?</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-around">
@@ -345,7 +398,7 @@ export default function NewWorkoutPage() {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setWorkout(prev => ({ ...prev, feeling }))}
-                    className={`p-2 rounded-full ${workout.feeling === feeling ? 'bg-primary' : 'bg-secondary'}`}
+                    className={`p-4 rounded-full ${workout.feeling === feeling ? 'bg-gray-200' : 'bg-gray-100'}`}
                   >
                     <FeelingEmoji feeling={feeling} />
                   </motion.button>
@@ -367,13 +420,27 @@ export default function NewWorkoutPage() {
               <div className="flex flex-col items-center space-y-4">
                 {imagePreview ? (
                   <div className="relative w-full h-64">
-                    <Image src={imagePreview} alt="Workout preview" className="w-full h-full object-cover rounded-lg" width={500} height={300} />
+                    {imageError ? (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-lg">
+                        <p className="text-red-500">{imageError}</p>
+                      </div>
+                    ) : (
+                      <Image 
+                        src={imagePreview} 
+                        alt="Workout preview" 
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-lg"
+                        onError={() => setImageError('Error loading image')}
+                      />
+                    )}
                     <Button
                       onClick={() => {
                         setImage(null)
                         setImagePreview(null)
+                        setImageError(null)
                       }}
-                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600"
+                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white"
                     >
                       Remove
                     </Button>
@@ -406,7 +473,7 @@ export default function NewWorkoutPage() {
                   </>
                 )}
               </div>
-              <Button onClick={finishWorkout} className="w-full mt-4 bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600">
+              <Button onClick={finishWorkout} className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white">
                 <Dumbbell className="mr-2 h-4 w-4" /> Finish Workout
               </Button>
             </CardContent>
@@ -419,26 +486,36 @@ export default function NewWorkoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 h-[calc(100vh-4rem)] overflow-auto">
-      <motion.h1 
-        className="text-3xl font-bold text-primary mb-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        New Workout
-      </motion.h1>
       {!isFinished ? (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
+        <>
+          <motion.h1 
+            className="text-3xl font-bold mb-6 text-center text-gray-800"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            {renderStep()}
+            Log Your Workout
+          </motion.h1>
+          <motion.div
+            className="mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <Progress value={progress} className="w-full h-2" />
           </motion.div>
-        </AnimatePresence>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </>
       ) : (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -447,10 +524,10 @@ export default function NewWorkoutPage() {
           className="flex flex-col items-center justify-center h-full"
         >
           <Confetti />
-          <h2 className="text-3xl font-bold text-primary mb-4">Workout Complete!</h2>
-          <p className="text-xl text-center mb-8">Great job crushing your workout. Keep up the awesome work!</p>
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Workout Complete!</h2>
+          <p className="text-xl text-center mb-8 text-gray-600">Great job on your workout. Keep up the good work!</p>
           <motion.div animate={buttonControls}>
-            <Button asChild className="w-full max-w-md">
+            <Button asChild className="w-full max-w-md bg-blue-500 hover:bg-blue-600 text-white">
               <Link href="/progress">View Your Progress</Link>
             </Button>
           </motion.div>
