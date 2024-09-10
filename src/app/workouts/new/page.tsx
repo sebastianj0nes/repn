@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints } from 'lucide-react'
+import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Confetti from 'react-confetti'
 import Link from 'next/link'
@@ -44,7 +44,8 @@ const muscleGroups = [
 ]
 
 export default function NewWorkoutPage() {
-  const [step, setStep] = useState(1)  // Start at step 1 instead of 0
+  const [step, setStep] = useState(1)
+  const [progress, setProgress] = useState(0)
   const [workout, setWorkout] = useState<Workout | null>(null)
   const [currentExercise, setCurrentExercise] = useState<Exercise>({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
   const [isFinished, setIsFinished] = useState(false)
@@ -56,8 +57,9 @@ export default function NewWorkoutPage() {
   const [session, setSession] = useState<any>(null)
   const supabase = createClientComponentClient<Database>()
   const buttonControls = useAnimation()
-  const [progress, setProgress] = useState(0)
   const progressControls = useAnimation()
+
+  const totalSteps = 5 // Total number of steps in the workout process
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -90,18 +92,22 @@ export default function NewWorkoutPage() {
     }
   }, [workout, step])
 
+  useEffect(() => {
+    updateProgress()
+  }, [step])
+
   const updateProgress = () => {
-    if (!workout) return
-    let newProgress = 0
-    if (workout.muscleGroups.length > 0) newProgress += 20
-    if (workout.exercises.length > 0) newProgress += 20
-    newProgress += (step - 1) * 20 // Subtract 1 from step because step 1 is 0% progress
+    const newProgress = ((step - 1) / (totalSteps - 1)) * 100
     setProgress(Math.min(newProgress, 100))
   }
 
-  useEffect(() => {
-    updateProgress()
-  }, [step, workout])
+  const goToNextStep = () => {
+    setStep(prevStep => Math.min(prevStep + 1, totalSteps))
+  }
+
+  const goToPreviousStep = () => {
+    setStep(prevStep => Math.max(prevStep - 1, 1))
+  }
 
   useEffect(() => {
     buttonControls.start({
@@ -163,7 +169,12 @@ export default function NewWorkoutPage() {
         };
       })
       setCurrentExercise({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
-      setProgress(prev => Math.min(prev + 20, 80))
+    }
+  }
+
+  const finishExercises = () => {
+    if ((workout?.exercises?.length ?? 0) > 0) {
+      goToNextStep()
     }
   }
 
@@ -253,16 +264,17 @@ export default function NewWorkoutPage() {
 
       if (error) throw error
 
-      // Reset progress and clear localStorage
-      setIsFinished(true)
+      // Set progress to 100% on successful submission
       setProgress(100)
+      setIsFinished(true)
+      
+      // Reset other states and clear localStorage
       setWorkout(null)
       setCurrentExercise({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
       setImage(null)
       setImagePreview(null)
       setImageError(null)
       
-      // Clear all workout-related items from localStorage
       localStorage.removeItem('workoutProgress')
       localStorage.removeItem('workoutImage')
       localStorage.removeItem('workoutStep')
@@ -284,7 +296,39 @@ export default function NewWorkoutPage() {
     }
   }
 
+  const renderSavedExercises = () => {
+    return workout?.exercises.map((exercise, index) => (
+      <Card key={index} className="mb-4">
+        <CardHeader>
+          <CardTitle>{exercise.name}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {exercise.sets.map((set, setIndex) => (
+            <div key={setIndex} className="flex justify-between items-center mb-2">
+              <span>Set {setIndex + 1}:</span>
+              <span>{set.weight} kg x {set.reps} reps</span>
+              {set.isDropSet && <Badge>Dropset</Badge>}
+              {set.isSetOfTheDay && <Badge>Set of the Day</Badge>}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    ))
+  }
+
   const renderStep = () => {
+    const BackButton = () => (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={goToPreviousStep}
+        className="mb-4"
+        disabled={step === 1}
+      >
+        <ChevronLeft className="h-4 w-4 mr-1" /> Back
+      </Button>
+    )
+
     switch (step) {
       case 1:
         return (
@@ -310,7 +354,7 @@ export default function NewWorkoutPage() {
               </div>
               <motion.div animate={buttonControls}>
                 <Button 
-                  onClick={() => setStep(2)} 
+                  onClick={() => goToNextStep()} 
                   className="w-full mt-4"
                   disabled={workout?.muscleGroups.length === 0}
                 >
@@ -322,81 +366,93 @@ export default function NewWorkoutPage() {
         )
       case 2:
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle>{currentExercise.name ? 'Current Exercise' : 'Add New Exercise'}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Input
-                placeholder="Exercise name"
-                value={currentExercise.name}
-                onChange={handleExerciseNameChange}
-              />
-              <AnimatePresence>
-                {currentExercise.sets.map((set, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex space-x-2 items-center"
-                  >
-                    <Input
-                      placeholder="Weight"
-                      value={set.weight}
-                      onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                      className="w-1/3"
-                    />
-                    <Input
-                      placeholder="Reps"
-                      value={set.reps}
-                      onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                      className="w-1/3"
-                    />
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`dropset-${index}`}
-                        checked={set.isDropSet}
-                        onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked as boolean)}
+          <div className="space-y-6">
+            <Card className="relative">
+              <BackButton />
+              <CardHeader>
+                <CardTitle>{currentExercise.name ? 'Current Exercise' : 'Add New Exercise'}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input
+                  placeholder="Exercise name"
+                  value={currentExercise.name}
+                  onChange={handleExerciseNameChange}
+                />
+                <AnimatePresence>
+                  {currentExercise.sets.map((set, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex space-x-2 items-center"
+                    >
+                      <Input
+                        placeholder="Weight"
+                        value={set.weight}
+                        onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+                        className="w-1/3"
                       />
-                      <Label htmlFor={`dropset-${index}`}>Dropset</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`sotd-${index}`}
-                        checked={set.isSetOfTheDay}
-                        onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked as boolean)}
+                      <Input
+                        placeholder="Reps"
+                        value={set.reps}
+                        onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                        className="w-1/3"
                       />
-                      <Label htmlFor={`sotd-${index}`}>
-                        <Star className="h-4 w-4 text-yellow-500" />
-                      </Label>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-              <div className="flex space-x-2">
-                <Button onClick={() => addSet()} variant="outline" className="w-1/2">
-                  <Plus className="mr-2 h-4 w-4" /> Add Set
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`dropset-${index}`}
+                          checked={set.isDropSet}
+                          onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked as boolean)}
+                        />
+                        <Label htmlFor={`dropset-${index}`}>Dropset</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`sotd-${index}`}
+                          checked={set.isSetOfTheDay}
+                          onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked as boolean)}
+                        />
+                        <Label htmlFor={`sotd-${index}`}>
+                          <Star className="h-4 w-4 text-yellow-500" />
+                        </Label>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <div className="flex space-x-2">
+                  <Button onClick={() => addSet()} variant="outline" className="w-1/2">
+                    <Plus className="mr-2 h-4 w-4" /> Add Set
+                  </Button>
+                  <Button onClick={() => addSet(true)} variant="outline" className="w-1/2">
+                    <Zap className="mr-2 h-4 w-4" /> Add Dropset
+                  </Button>
+                </div>
+                <Button onClick={saveExercise} className="w-full bg-green-500 hover:bg-green-600 text-white">
+                  <Check className="mr-2 h-4 w-4" /> Save Exercise
                 </Button>
-                <Button onClick={() => addSet(true)} variant="outline" className="w-1/2">
-                  <Zap className="mr-2 h-4 w-4" /> Add Dropset
-                </Button>
+              </CardContent>
+            </Card>
+
+            {workout?.exercises && workout.exercises.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Saved Exercises</h3>
+                {renderSavedExercises()}
               </div>
-              <Button onClick={saveExercise} className="w-full bg-green-500 hover:bg-green-600 text-white">
-                <Check className="mr-2 h-4 w-4" /> Save Exercise
-                </Button>
-              {(workout?.exercises?.length ?? 0) > 0 && (
-                <Button onClick={() => setStep(3)} className="w-full">
-                  Finish Exercises <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+            )}
+
+            {(workout?.exercises?.length ?? 0) > 0 && (
+              <Button onClick={finishExercises} className="w-full">
+                Finish Exercises <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </div>
         )
       case 3:
         return (
-          <Card>
+          <Card className="relative">
+            <BackButton />
             <CardHeader>
               <CardTitle>Workout Summary</CardTitle>
             </CardHeader>
@@ -426,7 +482,7 @@ export default function NewWorkoutPage() {
                   </motion.div>
                 ))}
               </div>
-              <Button onClick={() => setStep(4)} className="w-full">
+              <Button onClick={() => goToNextStep()} className="w-full">
                 Next <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
@@ -434,7 +490,8 @@ export default function NewWorkoutPage() {
         )
       case 4:
         return (
-          <Card>
+          <Card className="relative">
+            <BackButton />
             <CardHeader>
               <CardTitle>How was your workout?</CardTitle>
             </CardHeader>
@@ -452,7 +509,7 @@ export default function NewWorkoutPage() {
                   </motion.button>
                 ))}
               </div>
-              <Button onClick={() => setStep(5)} className="w-full">
+              <Button onClick={() => goToNextStep()} className="w-full">
                 Next <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
@@ -460,7 +517,8 @@ export default function NewWorkoutPage() {
         )
       case 5:
         return (
-          <Card>
+          <Card className="relative">
+            <BackButton />
             <CardHeader>
               <CardTitle>Workout Photo</CardTitle>
             </CardHeader>
