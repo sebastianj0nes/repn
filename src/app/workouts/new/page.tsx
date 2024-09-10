@@ -44,8 +44,8 @@ const muscleGroups = [
 ]
 
 export default function NewWorkoutPage() {
-  const [step, setStep] = useState(1)
-  const [workout, setWorkout] = useState<Workout>({ muscleGroups: [], exercises: [], feeling: 'okay' })
+  const [step, setStep] = useState(1)  // Start at step 1 instead of 0
+  const [workout, setWorkout] = useState<Workout | null>(null)
   const [currentExercise, setCurrentExercise] = useState<Exercise>({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
   const [isFinished, setIsFinished] = useState(false)
   const [image, setImage] = useState<File | null>(null)
@@ -68,6 +68,42 @@ export default function NewWorkoutPage() {
   }, [supabase])
 
   useEffect(() => {
+    const savedWorkout = localStorage.getItem('workoutProgress')
+    const savedImage = localStorage.getItem('workoutImage')
+    const savedStep = localStorage.getItem('workoutStep')
+    if (savedWorkout) {
+      setWorkout(JSON.parse(savedWorkout))
+    }
+    if (savedImage) {
+      setImagePreview(savedImage)
+    }
+    if (savedStep) {
+      setStep(parseInt(savedStep))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (workout) {
+      localStorage.setItem('workoutProgress', JSON.stringify(workout))
+      localStorage.setItem('workoutStep', step.toString())
+      updateProgress()
+    }
+  }, [workout, step])
+
+  const updateProgress = () => {
+    if (!workout) return
+    let newProgress = 0
+    if (workout.muscleGroups.length > 0) newProgress += 20
+    if (workout.exercises.length > 0) newProgress += 20
+    newProgress += (step - 1) * 20 // Subtract 1 from step because step 1 is 0% progress
+    setProgress(Math.min(newProgress, 100))
+  }
+
+  useEffect(() => {
+    updateProgress()
+  }, [step, workout])
+
+  useEffect(() => {
     buttonControls.start({
       x: [0, 2, 0, -2, 0],
       transition: {
@@ -85,12 +121,12 @@ export default function NewWorkoutPage() {
 
   const toggleMuscleGroup = (group: string) => {
     setWorkout(prev => {
+      if (!prev) return { muscleGroups: [group], exercises: [], feeling: 'okay' };
       const newMuscleGroups = prev.muscleGroups.includes(group)
         ? prev.muscleGroups.filter(g => g !== group)
-        : [...prev.muscleGroups, group]
-      setProgress(newMuscleGroups.length > 0 ? 20 : 0)
-      return { ...prev, muscleGroups: newMuscleGroups }
-    })
+        : [...prev.muscleGroups, group];
+      return { ...prev, muscleGroups: newMuscleGroups };
+    });
   }
 
   const handleExerciseNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,10 +155,13 @@ export default function NewWorkoutPage() {
 
   const saveExercise = () => {
     if (currentExercise.name && currentExercise.sets.some(set => set.weight && set.reps)) {
-      setWorkout(prev => ({
-        ...prev,
-        exercises: [...prev.exercises, currentExercise]
-      }))
+      setWorkout(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          exercises: [...prev.exercises, currentExercise]
+        };
+      })
       setCurrentExercise({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
       setProgress(prev => Math.min(prev + 20, 80))
     }
@@ -138,14 +177,17 @@ export default function NewWorkoutPage() {
         if (result.startsWith('data:image')) {
           setImagePreview(result)
           setImageError(null)
+          localStorage.setItem('workoutImage', result)
         } else {
           setImageError('Invalid image format')
           setImagePreview(null)
+          localStorage.removeItem('workoutImage')
         }
       }
       reader.onerror = () => {
         setImageError('Error reading file')
         setImagePreview(null)
+        localStorage.removeItem('workoutImage')
       }
       reader.readAsDataURL(file)
     }
@@ -189,18 +231,18 @@ export default function NewWorkoutPage() {
         }
       }
 
-      const setOfTheDay = workout.exercises.flatMap(ex => ex.sets).find(set => set.isSetOfTheDay)
-      const sotd = setOfTheDay ? `${setOfTheDay.weight}x${setOfTheDay.reps} ${workout.exercises.find(ex => ex.sets.includes(setOfTheDay))?.name}` : ''
+      const setOfTheDay = workout?.exercises.flatMap(ex => ex.sets).find(set => set.isSetOfTheDay)
+      const sotd = setOfTheDay ? `${setOfTheDay.weight}x${setOfTheDay.reps} ${workout?.exercises.find(ex => ex.sets.includes(setOfTheDay))?.name}` : ''
 
       // Start a transaction
       const { data, error } = await supabase.rpc('create_full_workout', {
         p_user_id: session.user.id,
         p_date: new Date().toISOString().split('T')[0], // Get only the date part
-        p_muscle_group: workout.muscleGroups.join(', '),
-        p_feeling: workout.feeling,
+        p_muscle_group: workout?.muscleGroups.join(', '),
+        p_feeling: workout?.feeling,
         p_sotd: sotd,
         p_image_url: image_url,
-        p_exercises: workout.exercises.map(exercise => ({
+        p_exercises: workout?.exercises.map(exercise => ({
           name: exercise.name,
           sets: exercise.sets.map(set => ({
             weight: parseFloat(set.weight),
@@ -211,8 +253,20 @@ export default function NewWorkoutPage() {
 
       if (error) throw error
 
+      // Reset progress and clear localStorage
       setIsFinished(true)
       setProgress(100)
+      setWorkout(null)
+      setCurrentExercise({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
+      setImage(null)
+      setImagePreview(null)
+      setImageError(null)
+      
+      // Clear all workout-related items from localStorage
+      localStorage.removeItem('workoutProgress')
+      localStorage.removeItem('workoutImage')
+      localStorage.removeItem('workoutStep')
+
     } catch (error) {
       console.error('Error submitting workout:', error)
       alert('Failed to log workout. Please try again.')
@@ -230,12 +284,6 @@ export default function NewWorkoutPage() {
     }
   }
 
-  const goBack = () => {
-    if (step > 1) {
-      setStep(step - 1)
-    }
-  }
-
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -250,9 +298,9 @@ export default function NewWorkoutPage() {
                   <Button
                     key={group.name}
                     onClick={() => toggleMuscleGroup(group.name)}
-                    variant={workout.muscleGroups.includes(group.name) ? "default" : "outline"}
+                    variant={workout?.muscleGroups.includes(group.name) ? "default" : "outline"}
                     className={`h-24 flex flex-col items-center justify-center ${
-                      workout.muscleGroups.includes(group.name) ? 'bg-blue-500 text-white' : ''
+                      workout?.muscleGroups.includes(group.name) ? 'bg-blue-500 text-white' : ''
                     }`}
                   >
                     <group.icon className="h-8 w-8 mb-2" />
@@ -264,7 +312,7 @@ export default function NewWorkoutPage() {
                 <Button 
                   onClick={() => setStep(2)} 
                   className="w-full mt-4"
-                  disabled={workout.muscleGroups.length === 0}
+                  disabled={workout?.muscleGroups.length === 0}
                 >
                   Next <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -337,8 +385,8 @@ export default function NewWorkoutPage() {
               </div>
               <Button onClick={saveExercise} className="w-full bg-green-500 hover:bg-green-600 text-white">
                 <Check className="mr-2 h-4 w-4" /> Save Exercise
-              </Button>
-              {workout.exercises.length > 0 && (
+                </Button>
+              {(workout?.exercises?.length ?? 0) > 0 && (
                 <Button onClick={() => setStep(3)} className="w-full">
                   Finish Exercises <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -354,7 +402,7 @@ export default function NewWorkoutPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="max-h-60 overflow-y-auto">
-                {workout.exercises.map((exercise, index) => (
+                {workout?.exercises.map((exercise, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, x: -50 }}
@@ -397,8 +445,8 @@ export default function NewWorkoutPage() {
                     key={feeling}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setWorkout(prev => ({ ...prev, feeling }))}
-                    className={`p-4 rounded-full ${workout.feeling === feeling ? 'bg-gray-200' : 'bg-gray-100'}`}
+                    onClick={() => setWorkout(prev => prev ? { ...prev, feeling } : null)}
+                    className={`p-4 rounded-full ${workout?.feeling === feeling ? 'bg-gray-200' : 'bg-gray-100'}`}
                   >
                     <FeelingEmoji feeling={feeling} />
                   </motion.button>
@@ -439,6 +487,7 @@ export default function NewWorkoutPage() {
                         setImage(null)
                         setImagePreview(null)
                         setImageError(null)
+                        localStorage.removeItem('workoutImage')
                       }}
                       className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white"
                     >
@@ -486,36 +535,24 @@ export default function NewWorkoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 h-[calc(100vh-4rem)] overflow-auto">
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+        Log Your Workout
+      </h1>
+      <div className="mb-6">
+        <Progress value={progress} className="w-full h-2" />
+      </div>
       {!isFinished ? (
-        <>
-          <motion.h1 
-            className="text-3xl font-bold mb-6 text-center text-gray-800"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            Log Your Workout
-          </motion.h1>
+        <AnimatePresence mode="wait">
           <motion.div
-            className="mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+            key={step}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
           >
-            <Progress value={progress} className="w-full h-2" />
+            {renderStep()}
           </motion.div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-            >
-              {renderStep()}
-            </motion.div>
-          </AnimatePresence>
-        </>
+        </AnimatePresence>
       ) : (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}

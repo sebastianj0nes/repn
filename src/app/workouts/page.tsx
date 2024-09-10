@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -7,6 +8,18 @@ import { Dumbbell, Calendar } from 'lucide-react'
 import Link from 'next/link'
 
 export default function WorkoutsLandingPage() {
+  const [buttonText, setButtonText] = useState('Start New Workout')
+
+  useEffect(() => {
+    const savedWorkout = localStorage.getItem('workoutProgress')
+    if (savedWorkout) {
+      const workout = JSON.parse(savedWorkout)
+      if (workout.muscleGroups && workout.muscleGroups.length > 0) {
+        setButtonText('Continue Workout')
+      }
+    }
+  }, [])
+
   return (
     <div className="container mx-auto px-4 py-6 h-[calc(100vh-4rem)] flex flex-col justify-center items-center">
       <motion.h1 
@@ -24,7 +37,8 @@ export default function WorkoutsLandingPage() {
         >
           <Button asChild className="w-full h-16 text-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
             <Link href="/workouts/new">
-              <Dumbbell className="mr-2 h-6 w-6" /> Start New Workout
+              <Dumbbell className="mr-2 h-6 w-6" /> 
+              {buttonText}
             </Link>
           </Button>
         </motion.div>
