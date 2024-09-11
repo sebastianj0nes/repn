@@ -8,12 +8,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge } from 'lucide-react'
+import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge, Pencil } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Confetti from 'react-confetti'
 import Link from 'next/link'
 import { Database } from '@/lib/database.types'
 import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface Set {
   weight: string;
@@ -58,6 +66,8 @@ export default function NewWorkoutPage() {
   const supabase = createClientComponentClient<Database>()
   const buttonControls = useAnimation()
   const progressControls = useAnimation()
+  const [showContinueModal, setShowContinueModal] = useState(false)
+  const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null)
 
   const totalSteps = 5 // Total number of steps in the workout process
 
@@ -73,14 +83,12 @@ export default function NewWorkoutPage() {
     const savedWorkout = localStorage.getItem('workoutProgress')
     const savedImage = localStorage.getItem('workoutImage')
     const savedStep = localStorage.getItem('workoutStep')
-    if (savedWorkout) {
-      setWorkout(JSON.parse(savedWorkout))
-    }
-    if (savedImage) {
-      setImagePreview(savedImage)
-    }
-    if (savedStep) {
-      setStep(parseInt(savedStep))
+    if (savedWorkout || savedImage || savedStep) {
+      setShowContinueModal(true)
+    } else {
+      // Initialize new workout
+      setWorkout({ muscleGroups: [], exercises: [], feeling: 'okay' })
+      setStep(1)
     }
   }, [])
 
@@ -298,19 +306,43 @@ export default function NewWorkoutPage() {
 
   const renderSavedExercises = () => {
     return workout?.exercises.map((exercise, index) => (
-      <Card key={index} className="mb-4">
+      <Card key={index} className="mb-4 relative">
         <CardHeader>
           <CardTitle>{exercise.name}</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 right-2"
+            onClick={() => setEditingExerciseIndex(index)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
         </CardHeader>
         <CardContent>
-          {exercise.sets.map((set, setIndex) => (
-            <div key={setIndex} className="flex justify-between items-center mb-2">
-              <span>Set {setIndex + 1}:</span>
-              <span>{set.weight} kg x {set.reps} reps</span>
-              {set.isDropSet && <Badge>Dropset</Badge>}
-              {set.isSetOfTheDay && <Badge>Set of the Day</Badge>}
-            </div>
-          ))}
+          {editingExerciseIndex === index ? (
+            <EditExerciseForm
+              exercise={exercise}
+              onSave={(updatedExercise) => {
+                setWorkout(prev => {
+                  if (!prev) return null;
+                  const newExercises = [...prev.exercises];
+                  newExercises[index] = updatedExercise;
+                  return { ...prev, exercises: newExercises };
+                });
+                setEditingExerciseIndex(null);
+              }}
+              onCancel={() => setEditingExerciseIndex(null)}
+            />
+          ) : (
+            exercise.sets.map((set, setIndex) => (
+              <div key={setIndex} className="flex justify-between items-center mb-2">
+                <span>Set {setIndex + 1}:</span>
+                <span>{set.weight} kg x {set.reps} reps</span>
+                {set.isDropSet && <Badge>Dropset</Badge>}
+                {set.isSetOfTheDay && <Badge>Set of the Day</Badge>}
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     ))
@@ -437,7 +469,7 @@ export default function NewWorkoutPage() {
 
             {workout?.exercises && workout.exercises.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Saved Exercises</h3>
+                <h3 className="text-xl font-semibold">Current Exercises</h3>
                 {renderSavedExercises()}
               </div>
             )}
@@ -591,6 +623,81 @@ export default function NewWorkoutPage() {
     }
   }
 
+  const handleContinueWorkout = () => {
+    setShowContinueModal(false)
+    // Load saved workout data
+    const savedWorkout = localStorage.getItem('workoutProgress')
+    const savedImage = localStorage.getItem('workoutImage')
+    const savedStep = localStorage.getItem('workoutStep')
+    if (savedWorkout) {
+      setWorkout(JSON.parse(savedWorkout))
+    }
+    if (savedImage) {
+      setImagePreview(savedImage)
+    }
+    if (savedStep) {
+      setStep(parseInt(savedStep))
+    }
+  }
+
+  const handleStartNewWorkout = () => {
+    setShowContinueModal(false)
+    // Clear saved data
+    localStorage.removeItem('workoutProgress')
+    localStorage.removeItem('workoutImage')
+    localStorage.removeItem('workoutStep')
+    // Initialize new workout
+    setWorkout({ muscleGroups: [], exercises: [], feeling: 'okay' })
+    setStep(1)
+  }
+
+  const EditExerciseForm = ({ exercise, onSave, onCancel }: { exercise: Exercise; onSave: (exercise: Exercise) => void; onCancel: () => void }) => {
+    const [editedExercise, setEditedExercise] = useState(exercise);
+
+    const handleSetChange = (index: number, field: keyof Set, value: string | boolean) => {
+      const newSets = [...editedExercise.sets];
+      newSets[index] = { ...newSets[index], [field]: value };
+      setEditedExercise({ ...editedExercise, sets: newSets });
+    };
+
+    return (
+      <div className="space-y-4">
+        <Input
+          value={editedExercise.name}
+          onChange={(e) => setEditedExercise({ ...editedExercise, name: e.target.value })}
+        />
+        {editedExercise.sets.map((set, index) => (
+          <div key={index} className="flex space-x-2">
+            <Input
+              value={set.weight}
+              onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+              placeholder="Weight"
+            />
+            <Input
+              value={set.reps}
+              onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+              placeholder="Reps"
+            />
+            <Checkbox
+              checked={set.isDropSet}
+              onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked)}
+            />
+            <Label>Dropset</Label>
+            <Checkbox
+              checked={set.isSetOfTheDay}
+              onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked)}
+            />
+            <Label>Set of the Day</Label>
+          </div>
+        ))}
+        <div className="flex space-x-2">
+          <Button onClick={() => onSave(editedExercise)}>Save</Button>
+          <Button variant="outline" onClick={onCancel}>Cancel</Button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 h-[calc(100vh-4rem)] overflow-auto pb-20">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
@@ -628,6 +735,34 @@ export default function NewWorkoutPage() {
           </motion.div>
         </motion.div>
       )}
+
+      <Dialog open={showContinueModal} onOpenChange={setShowContinueModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Continue Previous Workout?</DialogTitle>
+            <DialogDescription>
+              You have a saved workout in progress. Would you like to continue or start a new one?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-start">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleStartNewWorkout}
+              className="w-full sm:w-auto"
+            >
+              Start New Workout
+            </Button>
+            <Button
+              type="button"
+              onClick={handleContinueWorkout}
+              className="w-full sm:w-auto bg-green-500 hover:bg-green-600"
+            >
+              Continue Workout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
