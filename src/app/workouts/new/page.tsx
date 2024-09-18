@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge, Pencil } from 'lucide-react'
+import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge, Pencil, LucideIcon } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Confetti from 'react-confetti'
 import Link from 'next/link'
@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface Set {
   weight: string;
@@ -31,8 +32,11 @@ interface Set {
 }
 
 interface Exercise {
+  id: string;
   name: string;
   sets: Set[];
+  muscle_group: string;
+  image_url?: string; // Add this line
 }
 
 interface Workout {
@@ -41,7 +45,7 @@ interface Workout {
   feeling: 'great' | 'okay' | 'bad';
 }
 
-const muscleGroups = [
+const muscleGroups: { name: string; icon: LucideIcon }[] = [
   { name: 'Chest', icon: Heart },
   { name: 'Back', icon: Dumbbell },
   { name: 'Legs', icon: Footprints },
@@ -55,7 +59,7 @@ export default function NewWorkoutPage() {
   const [step, setStep] = useState(1)
   const [progress, setProgress] = useState(0)
   const [workout, setWorkout] = useState<Workout | null>(null)
-  const [currentExercise, setCurrentExercise] = useState<Exercise>({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
+  const [currentExercise, setCurrentExercise] = useState<Exercise>({ id: '', name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }], muscle_group: '' })
   const [isFinished, setIsFinished] = useState(false)
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -70,6 +74,12 @@ export default function NewWorkoutPage() {
   const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null)
 
   const totalSteps = 5 // Total number of steps in the workout process
+
+  const [muscleGroups, setMuscleGroups] = useState<{ name: string; icon: LucideIcon }[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
+  const [selectedExercise, setSelectedExercise] = useState('');
+  const [suggestedExercises, setSuggestedExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -133,7 +143,7 @@ export default function NewWorkoutPage() {
     })
   }, [buttonControls, progressControls, progress])
 
-  const toggleMuscleGroup = (group: string) => {
+  const toggleMuscleGroup = async (group: string) => {
     setWorkout(prev => {
       if (!prev) return { muscleGroups: [group], exercises: [], feeling: 'okay' };
       const newMuscleGroups = prev.muscleGroups.includes(group)
@@ -141,6 +151,15 @@ export default function NewWorkoutPage() {
         : [...prev.muscleGroups, group];
       return { ...prev, muscleGroups: newMuscleGroups };
     });
+
+    if (!workout?.muscleGroups.includes(group)) {
+      const exercises = await fetchExercises(group);
+      setSuggestedExercises(prevExercises => [...prevExercises, ...exercises]);
+    } else {
+      setSuggestedExercises(prevExercises => 
+        prevExercises.filter(exercise => exercise.muscle_group !== group)
+      );
+    }
   }
 
   const handleExerciseNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,10 +192,13 @@ export default function NewWorkoutPage() {
         if (!prev) return null;
         return {
           ...prev,
-          exercises: [...prev.exercises, currentExercise]
+          exercises: [...prev.exercises, {
+            ...currentExercise,
+            exercise_id: currentExercise.id // Ensure this is included
+          }]
         };
       })
-      setCurrentExercise({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
+      setCurrentExercise({ id: '', name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }], muscle_group: '' })
     }
   }
 
@@ -262,8 +284,10 @@ export default function NewWorkoutPage() {
         p_sotd: sotd,
         p_image_url: image_url,
         p_exercises: workout?.exercises.map(exercise => ({
+          exercise_id: exercise.id, // Include this
           name: exercise.name,
-          sets: exercise.sets.map(set => ({
+          sets: exercise.sets.map((set, index) => ({
+            set_number: index + 1,
             weight: parseFloat(set.weight),
             reps: parseInt(set.reps)
           }))
@@ -278,7 +302,7 @@ export default function NewWorkoutPage() {
       
       // Reset other states and clear localStorage
       setWorkout(null)
-      setCurrentExercise({ name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }] })
+      setCurrentExercise({ id: '', name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }], muscle_group: '' })
       setImage(null)
       setImagePreview(null)
       setImageError(null)
@@ -399,6 +423,43 @@ export default function NewWorkoutPage() {
       case 2:
         return (
           <div className="space-y-6">
+            {workout?.muscleGroups.map((muscleGroup) => (
+              <div key={muscleGroup} className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Suggested Exercises for {muscleGroup}:</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {suggestedExercises
+                    .filter(exercise => exercise.muscle_group === muscleGroup)
+                    .map((exercise) => (
+                      <Card 
+                        key={exercise.id} 
+                        className="cursor-pointer hover:bg-gray-100"
+                        onClick={() => {
+                          setCurrentExercise({
+                            id: exercise.id,
+                            name: exercise.name,
+                            sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }],
+                            muscle_group: exercise.muscle_group
+                          });
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          {exercise.image_url && (
+                            <Image 
+                              src={exercise.image_url} 
+                              alt={exercise.name} 
+                              width={100} 
+                              height={100} 
+                              className="mb-2 rounded"
+                            />
+                          )}
+                          <p className="font-medium">{exercise.name}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
+              </div>
+            ))}
+
             <Card className="relative">
               <BackButton />
               <CardHeader>
@@ -696,6 +757,31 @@ export default function NewWorkoutPage() {
         </div>
       </div>
     );
+  };
+
+  useEffect(() => {
+    fetchMuscleGroups();
+  }, []);
+
+  useEffect(() => {
+    if (selectedMuscleGroup) {
+      fetchExercises(selectedMuscleGroup);
+    }
+  }, [selectedMuscleGroup]);
+
+  const fetchMuscleGroups = async () => {
+    const response = await fetch('/api/exercises');
+    const data = await response.json();
+    const uniqueMuscleGroups = Array.from(new Set(data.map((exercise: { muscle_group: string }) => exercise.muscle_group)));
+    setMuscleGroups(uniqueMuscleGroups.map((name: unknown) => ({ name: name as string, icon: Dumbbell })));
+  };
+
+  const fetchExercises = async (muscleGroup: string): Promise<Exercise[]> => {
+    const response = await fetch(`/api/exercises?muscleGroup=${encodeURIComponent(muscleGroup)}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch exercises');
+    }
+    return response.json();
   };
 
   return (

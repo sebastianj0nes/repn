@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Home, Activity, BarChart2, Utensils } from 'lucide-react'
+import { Home, Activity, BarChart2, Utensils, BarChart3 } from 'lucide-react'
 
 export default function BottomNav() {
   return (
@@ -17,9 +17,9 @@ export default function BottomNav() {
           <BarChart2 className="h-6 w-6" />
           <span className="text-xs mt-1">Progress</span>
         </Link>
-        <Link href="/nutrition" className="flex flex-col items-center">
-          <Utensils className="h-6 w-6" />
-          <span className="text-xs mt-1">Nutrition</span>
+        <Link href="/stats" className="flex flex-col items-center">
+          <BarChart3 className="h-6 w-6" />
+          <span className="text-xs mt-1">Stats</span>
         </Link>
       </div>
     </nav>
