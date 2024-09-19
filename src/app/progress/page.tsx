@@ -37,6 +37,7 @@ export default function ProgressPage() {
               set_number,
               weight,
               reps,
+              duration,
               is_dropset,
               dropset_weight,
               dropset_reps
@@ -226,7 +227,19 @@ export default function ProgressPage() {
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {exercise.sets.map((set: any, setIndex: number) => (
                                   <div key={setIndex} className="flex-1 bg-white p-2 rounded border border-gray-200">
-                                    <span className="font-medium">Set {setIndex + 1}:</span> {set.weight}kg x {set.reps}
+                                    <span className="font-medium">Set {setIndex + 1}:</span>{' '}
+                                    {set.weight && set.reps ? (
+                                      // Weights exercise
+                                      <span>{set.weight}kg x {set.reps}</span>
+                                    ) : set.reps ? (
+                                      // Bodyweight exercise
+                                      <span>{set.reps} reps</span>
+                                    ) : set.duration ? (
+                                      // Time-based exercise
+                                      <span>{set.duration} seconds</span>
+                                    ) : (
+                                      <span>N/A</span>
+                                    )}
                                     {set.is_dropset && (
                                       <span className="text-blue-500 ml-2">
                                         → {set.dropset_weight}kg x {set.dropset_reps} (Dropset)

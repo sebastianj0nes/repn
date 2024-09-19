@@ -22,14 +22,6 @@ export default function WorkoutsLandingPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 h-[calc(100vh-4rem)] flex flex-col justify-center items-center">
-      <motion.h1 
-        className="text-4xl font-bold text-primary mb-8 text-center"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        Ready to crush your workout?
-      </motion.h1>
       <div className="w-full max-w-md space-y-6">
         <motion.div
           whileHover={{ scale: 1.05 }}

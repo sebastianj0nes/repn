@@ -3,22 +3,18 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const muscleGroup = searchParams.get('muscleGroup');
-
   const supabase = createRouteHandlerClient({ cookies });
-
-  const query = supabase.from('exercises_library').select('*');
   
-  if (muscleGroup) {
-    query.eq('muscle_group', muscleGroup);
+  try {
+    const { data, error } = await supabase
+      .from('exercises_library')
+      .select('*');
+    
+    if (error) throw error;
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error fetching exercises:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-
-  const { data, error } = await query.order('name');
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
 }

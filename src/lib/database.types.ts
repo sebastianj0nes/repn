@@ -61,6 +61,14 @@ export type Database = {
             reps?: number
           }
         }
+        Exercises_Library: {
+          id: string;
+          name: string;
+          muscle_group: string;
+          created_at: string;
+          image_url: string;
+          exercise_type: 'weights' | 'bodyweight' | 'time';
+        }
       }
     }
   }

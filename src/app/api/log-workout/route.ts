@@ -49,7 +49,8 @@ export async function POST(request: Request) {
           exercise_id: exercise.id,
           set_number: set.set_number,
           weight: set.weight,
-          reps: set.reps
+          reps: set.reps,
+          duration: set.duration // Add this line to include duration
         });
 
       if (setError) {

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge, Pencil, LucideIcon } from 'lucide-react'
+import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge, Pencil, LucideIcon, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Confetti from 'react-confetti'
 import Link from 'next/link'
@@ -26,8 +26,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 
 interface Set {
-  weight: string;
-  reps: string;
+  weight?: number | null;
+  reps?: number | null;
+  duration?: number | null;
   isDropSet: boolean;
   isSetOfTheDay: boolean;
   dropsetWeight?: string;
@@ -40,6 +41,7 @@ interface Exercise {
   sets: Set[];
   muscle_group: string;
   image_url?: string;
+  exercise_type: 'weights' | 'bodyweight' | 'time';
 }
 
 interface Workout {
@@ -62,7 +64,7 @@ export default function NewWorkoutPage() {
   const [step, setStep] = useState(1)
   const [progress, setProgress] = useState(0)
   const [workout, setWorkout] = useState<Workout | null>(null)
-  const [currentExercise, setCurrentExercise] = useState<Exercise>({ id: '', name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }], muscle_group: '' })
+  const [currentExercise, setCurrentExercise] = useState<Exercise>({ id: '', name: '', sets: [{ isDropSet: false, isSetOfTheDay: false }], muscle_group: '', exercise_type: 'weights' })
   const [isFinished, setIsFinished] = useState(false)
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -95,16 +97,25 @@ export default function NewWorkoutPage() {
   }, [supabase])
 
   useEffect(() => {
-    const savedWorkout = localStorage.getItem('workoutProgress')
-    const savedImage = localStorage.getItem('workoutImage')
-    const savedStep = localStorage.getItem('workoutStep')
-    if (savedWorkout || savedImage || savedStep) {
-      setShowContinueModal(true)
-    } else {
-      // Initialize new workout
-      setWorkout({ muscleGroups: [], exercises: [], feeling: 'okay' })
-      setStep(1)
+    const checkSavedWorkout = () => {
+      const savedWorkout = localStorage.getItem('workoutProgress')
+      const savedImage = localStorage.getItem('workoutImage')
+      const savedStep = localStorage.getItem('workoutStep')
+      
+      // Check if there's meaningful data saved
+      if (savedWorkout && JSON.parse(savedWorkout).exercises.length > 0) {
+        setShowContinueModal(true)
+      } else {
+        // If no meaningful data, clear any residual data and start a new workout
+        localStorage.removeItem('workoutProgress')
+        localStorage.removeItem('workoutImage')
+        localStorage.removeItem('workoutStep')
+        setWorkout({ muscleGroups: [], exercises: [], feeling: 'okay' })
+        setStep(1)
+      }
     }
+
+    checkSavedWorkout()
   }, [])
 
   useEffect(() => {
@@ -173,8 +184,12 @@ export default function NewWorkoutPage() {
 
   const handleSetChange = (index: number, field: keyof Set, value: string | boolean) => {
     setCurrentExercise(prev => {
-      const newSets = [...prev.sets]
-      newSets[index] = { ...newSets[index], [field]: value }
+      const newSets = [...prev.sets];
+      if (field === 'duration' || field === 'weight' || field === 'reps') {
+        newSets[index] = { ...newSets[index], [field]: parseFloat(value as string) || null };
+      } else {
+        newSets[index] = { ...newSets[index], [field]: value };
+      }
       if (field === 'isDropSet' && value === true) {
         newSets[index].dropsetWeight = '';
         newSets[index].dropsetReps = '';
@@ -191,12 +206,23 @@ export default function NewWorkoutPage() {
   const addSet = (isDropSet: boolean = false) => {
     setCurrentExercise(prev => ({
       ...prev,
-      sets: [...prev.sets, { weight: '', reps: '', isDropSet, isSetOfTheDay: false }]
+      sets: [...prev.sets, { isDropSet, isSetOfTheDay: false }]
     }))
   }
 
   const saveExercise = () => {
-    if (currentExercise.name && currentExercise.sets.some(set => set.weight && set.reps)) {
+    if (currentExercise.name && currentExercise.sets.some(set => {
+      switch (currentExercise.exercise_type) {
+        case 'weights':
+          return set.weight && set.reps;
+        case 'bodyweight':
+          return set.reps;
+        case 'time':
+          return set.duration;
+        default:
+          return false;
+      }
+    })) {
       setWorkout(prev => {
         if (!prev) return null;
         return {
@@ -207,7 +233,7 @@ export default function NewWorkoutPage() {
           }]
         };
       })
-      setCurrentExercise({ id: '', name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }], muscle_group: '' })
+      setCurrentExercise({ id: '', name: '', sets: [{ isDropSet: false, isSetOfTheDay: false }], muscle_group: '', exercise_type: 'weights' })
     }
   }
 
@@ -297,11 +323,12 @@ export default function NewWorkoutPage() {
           name: exercise.name,
           sets: exercise.sets.map((set, index) => ({
             set_number: index + 1,
-            weight: parseFloat(set.weight),
-            reps: parseInt(set.reps),
+            weight: set.weight ? parseFloat(set.weight.toString()) : null,
+            reps: set.reps ? parseInt(set.reps.toString()) : null,
+            duration: set.duration ? parseInt(set.duration.toString()) : null,
             is_dropset: set.isDropSet,
-            dropset_weight: set.isDropSet ? parseFloat(set.dropsetWeight!) : null,
-            dropset_reps: set.isDropSet ? parseInt(set.dropsetReps!) : null
+            dropset_weight: set.dropsetWeight ? parseFloat(set.dropsetWeight.toString()) : null,
+            dropset_reps: set.dropsetReps ? parseInt(set.dropsetReps.toString()) : null
           }))
         }))
       })
@@ -312,16 +339,17 @@ export default function NewWorkoutPage() {
       setProgress(100)
       setIsFinished(true)
       
-      // Reset other states and clear localStorage
-      setWorkout(null)
-      setCurrentExercise({ id: '', name: '', sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }], muscle_group: '' })
-      setImage(null)
-      setImagePreview(null)
-      setImageError(null)
-      
+      // Clear localStorage after successful submission
       localStorage.removeItem('workoutProgress')
       localStorage.removeItem('workoutImage')
       localStorage.removeItem('workoutStep')
+      
+      // Reset other states
+      setWorkout(null)
+      setCurrentExercise({ id: '', name: '', sets: [{ isDropSet: false, isSetOfTheDay: false }], muscle_group: '', exercise_type: 'weights' })
+      setImage(null)
+      setImagePreview(null)
+      setImageError(null)
 
     } catch (error) {
       console.error('Error submitting workout:', error)
@@ -373,7 +401,15 @@ export default function NewWorkoutPage() {
             exercise.sets.map((set, setIndex) => (
               <div key={setIndex} className="flex justify-between items-center mb-2">
                 <span>Set {setIndex + 1}:</span>
-                <span>{set.weight} kg x {set.reps} reps</span>
+                {exercise.exercise_type === 'weights' && (
+                  <span>{set.weight} kg x {set.reps} reps</span>
+                )}
+                {exercise.exercise_type === 'bodyweight' && (
+                  <span>{set.reps} reps</span>
+                )}
+                {exercise.exercise_type === 'time' && (
+                  <span>{set.duration} seconds</span>
+                )}
                 {set.isDropSet && <Badge>Dropset</Badge>}
                 {set.isSetOfTheDay && <Badge>Set of the Day</Badge>}
               </div>
@@ -482,18 +518,7 @@ export default function NewWorkoutPage() {
                           transition={{ duration: 0.3 }}
                           className="flex space-x-2 items-center"
                         >
-                          <Input
-                            placeholder="Weight"
-                            value={set.weight}
-                            onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                            className="w-1/4"
-                          />
-                          <Input
-                            placeholder="Reps"
-                            value={set.reps}
-                            onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                            className="w-1/4"
-                          />
+                          {renderSetInputs(set, index)}
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id={`dropset-${index}`}
@@ -585,7 +610,15 @@ export default function NewWorkoutPage() {
                     <ul className="list-disc pl-5 text-sm">
                       {exercise.sets.map((set, setIndex) => (
                         <li key={setIndex} className="flex items-center space-x-2">
-                          <span>{set.weight}kg x {set.reps}</span>
+                          {exercise.exercise_type === 'weights' && (
+                            <span>{set.weight}kg x {set.reps}</span>
+                          )}
+                          {exercise.exercise_type === 'bodyweight' && (
+                            <span>{set.reps} reps</span>
+                          )}
+                          {exercise.exercise_type === 'time' && (
+                            <span>{set.duration} seconds</span>
+                          )}
                           {set.isDropSet && (
                             <span className="text-blue-500">
                               → {set.dropsetWeight}kg x {set.dropsetReps} (Dropset)
@@ -608,26 +641,69 @@ export default function NewWorkoutPage() {
         return (
           <Card className="relative">
             <BackButton />
-            <CardHeader>
-              <CardTitle>How was your workout?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-around">
-                {(['bad', 'okay', 'great'] as const).map((feeling) => (
-                  <motion.button
-                    key={feeling}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => setWorkout(prev => prev ? { ...prev, feeling } : null)}
-                    className={`p-4 rounded-full ${workout?.feeling === feeling ? 'bg-gray-200' : 'bg-gray-100'}`}
+            <CardContent className="p-6">
+              <motion.h2
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-3xl font-bold mb-6 text-center text-primary"
+              >
+                How was your workout today?
+              </motion.h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  { type: 'bad', icon: ThumbsDown, label: 'Challenging Day', description: 'Weights feeling heavy, struggled with sets', color: 'red' },
+                  { type: 'okay', icon: Meh, label: 'Steady Session', description: 'Weights moving consistently, maintained performance', color: 'primary' },
+                  { type: 'great', icon: ThumbsUp, label: 'Energized Workout', description: 'Feeling strong, possibly hit new personal bests', color: 'green' },
+                ].map((feeling) => (
+                  <motion.div
+                    key={feeling.type}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="h-full"
                   >
-                    <FeelingEmoji feeling={feeling} />
-                  </motion.button>
+                    <Card
+                      className={`cursor-pointer transition-all duration-300 h-full flex flex-col ${
+                        workout?.feeling === feeling.type
+                          ? `ring-2 ring-${feeling.color}-500 shadow-lg`
+                          : "hover:shadow-md"
+                      }`}
+                      onClick={() => setWorkout(prev => prev ? { ...prev, feeling: feeling.type as 'bad' | 'okay' | 'great' } : null)}
+                    >
+                      <CardContent className="p-6 flex flex-col items-center text-center flex-grow">
+                        <motion.div
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="mb-4"
+                        >
+                          <feeling.icon
+                            className={`h-16 w-16 ${
+                              workout?.feeling === feeling.type ? `text-${feeling.color}-500` : "text-muted-foreground"
+                            }`}
+                          />
+                        </motion.div>
+                        <h3 className="text-xl font-semibold mb-2">{feeling.label}</h3>
+                        <p className="text-muted-foreground flex-grow">{feeling.description}</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
-              <Button onClick={() => goToNextStep()} className="w-full">
-                Next <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="mt-8 flex justify-center"
+              >
+                <Button
+                  size="lg"
+                  disabled={!workout?.feeling}
+                  onClick={() => goToNextStep()}
+                  className="px-8 py-2 text-lg"
+                >
+                  Continue
+                </Button>
+              </motion.div>
             </CardContent>
           </Card>
         )
@@ -740,7 +816,11 @@ export default function NewWorkoutPage() {
 
     const handleSetChange = (index: number, field: keyof Set, value: string | boolean) => {
       const newSets = [...editedExercise.sets];
-      newSets[index] = { ...newSets[index], [field]: value };
+      if (field === 'duration' || field === 'weight' || field === 'reps') {
+        newSets[index] = { ...newSets[index], [field]: parseFloat(value as string) || null };
+      } else {
+        newSets[index] = { ...newSets[index], [field]: value };
+      }
       setEditedExercise({ ...editedExercise, sets: newSets });
     };
 
@@ -752,40 +832,41 @@ export default function NewWorkoutPage() {
         />
         {editedExercise.sets.map((set, index) => (
           <div key={index} className="flex space-x-2">
-            <Input
-              value={set.weight}
-              onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-              placeholder="Weight"
-            />
-            <Input
-              value={set.reps}
-              onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-              placeholder="Reps"
-            />
-            <Checkbox
-              checked={set.isDropSet}
-              onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked)}
-            />
-            <Label>Dropset</Label>
+            {renderSetInputs(set, index)}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={`dropset-${index}`}
+                checked={set.isDropSet}
+                onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked as boolean)}
+              />
+              <Label htmlFor={`dropset-${index}`}>Dropset</Label>
+            </div>
             {set.isDropSet && (
               <>
                 <Input
+                  placeholder="Dropset Weight"
                   value={set.dropsetWeight}
                   onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
-                  placeholder="Dropset Weight"
+                  className="w-1/4"
                 />
                 <Input
+                  placeholder="Dropset Reps"
                   value={set.dropsetReps}
                   onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
-                  placeholder="Dropset Reps"
+                  className="w-1/4"
                 />
               </>
             )}
-            <Checkbox
-              checked={set.isSetOfTheDay}
-              onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked)}
-            />
-            <Label>Set of the Day</Label>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={`sotd-${index}`}
+                checked={set.isSetOfTheDay}
+                onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked as boolean)}
+              />
+              <Label htmlFor={`sotd-${index}`}>
+                <Star className="h-4 w-4 text-yellow-500" />
+              </Label>
+            </div>
           </div>
         ))}
         <div className="flex space-x-2">
@@ -794,6 +875,62 @@ export default function NewWorkoutPage() {
         </div>
       </div>
     );
+  };
+
+  const handleExerciseSelect = (exerciseId: string) => {
+    const selectedExercise = availableExercises.find(ex => ex.id === exerciseId);
+    if (selectedExercise) {
+      setCurrentExercise({
+        id: selectedExercise.id,
+        name: selectedExercise.name,
+        sets: [{ isDropSet: false, isSetOfTheDay: false }],
+        muscle_group: selectedExercise.muscle_group,
+        exercise_type: selectedExercise.exercise_type
+      });
+      setSelectedExerciseId(exerciseId);
+    }
+  };
+
+  const renderSetInputs = (set: Set, index: number) => {
+    switch (currentExercise.exercise_type) {
+      case 'weights':
+        return (
+          <>
+            <Input
+              placeholder="Weight"
+              value={set.weight || ''}
+              onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+              className="w-1/4"
+            />
+            <Input
+              placeholder="Reps"
+              value={set.reps || ''}
+              onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+              className="w-1/4"
+            />
+          </>
+        );
+      case 'bodyweight':
+        return (
+          <Input
+            placeholder="Reps"
+            value={set.reps || ''}
+            onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+            className="w-1/4"
+          />
+        );
+      case 'time':
+        return (
+          <Input
+            placeholder="Duration (seconds)"
+            value={set.duration || ''}
+            onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
+            className="w-1/4"
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   useEffect(() => {
@@ -834,19 +971,6 @@ export default function NewWorkoutPage() {
       setAvailableExercises(exercises);
     } else {
       console.error('Failed to fetch exercises');
-    }
-  };
-
-  const handleExerciseSelect = (exerciseId: string) => {
-    const selectedExercise = availableExercises.find(ex => ex.id === exerciseId);
-    if (selectedExercise) {
-      setCurrentExercise({
-        id: selectedExercise.id,
-        name: selectedExercise.name,
-        sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }],
-        muscle_group: selectedExercise.muscle_group
-      });
-      setSelectedExerciseId(exerciseId);
     }
   };
 
