@@ -30,6 +30,8 @@ interface Set {
   reps: string;
   isDropSet: boolean;
   isSetOfTheDay: boolean;
+  dropsetWeight?: string;
+  dropsetReps?: string;
 }
 
 interface Exercise {
@@ -37,7 +39,7 @@ interface Exercise {
   name: string;
   sets: Set[];
   muscle_group: string;
-  image_url?: string; // Add this line
+  image_url?: string;
 }
 
 interface Workout {
@@ -173,6 +175,10 @@ export default function NewWorkoutPage() {
     setCurrentExercise(prev => {
       const newSets = [...prev.sets]
       newSets[index] = { ...newSets[index], [field]: value }
+      if (field === 'isDropSet' && value === true) {
+        newSets[index].dropsetWeight = '';
+        newSets[index].dropsetReps = '';
+      }
       if (field === 'isSetOfTheDay' && value === true) {
         newSets.forEach((set, i) => {
           if (i !== index) set.isSetOfTheDay = false
@@ -197,7 +203,7 @@ export default function NewWorkoutPage() {
           ...prev,
           exercises: [...prev.exercises, {
             ...currentExercise,
-            exercise_id: currentExercise.id // Ensure this is included
+            exercise_id: currentExercise.id
           }]
         };
       })
@@ -287,12 +293,15 @@ export default function NewWorkoutPage() {
         p_sotd: sotd,
         p_image_url: image_url,
         p_exercises: workout?.exercises.map(exercise => ({
-          exercise_id: exercise.id, // Include this
+          exercise_id: exercise.id,
           name: exercise.name,
           sets: exercise.sets.map((set, index) => ({
             set_number: index + 1,
             weight: parseFloat(set.weight),
-            reps: parseInt(set.reps)
+            reps: parseInt(set.reps),
+            is_dropset: set.isDropSet,
+            dropset_weight: set.isDropSet ? parseFloat(set.dropsetWeight!) : null,
+            dropset_reps: set.isDropSet ? parseInt(set.dropsetReps!) : null
           }))
         }))
       })
@@ -477,13 +486,13 @@ export default function NewWorkoutPage() {
                             placeholder="Weight"
                             value={set.weight}
                             onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                            className="w-1/3"
+                            className="w-1/4"
                           />
                           <Input
                             placeholder="Reps"
                             value={set.reps}
                             onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                            className="w-1/3"
+                            className="w-1/4"
                           />
                           <div className="flex items-center space-x-2">
                             <Checkbox
@@ -493,6 +502,22 @@ export default function NewWorkoutPage() {
                             />
                             <Label htmlFor={`dropset-${index}`}>Dropset</Label>
                           </div>
+                          {set.isDropSet && (
+                            <>
+                              <Input
+                                placeholder="Dropset Weight"
+                                value={set.dropsetWeight}
+                                onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
+                                className="w-1/4"
+                              />
+                              <Input
+                                placeholder="Dropset Reps"
+                                value={set.dropsetReps}
+                                onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
+                                className="w-1/4"
+                              />
+                            </>
+                          )}
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id={`sotd-${index}`}
@@ -561,7 +586,11 @@ export default function NewWorkoutPage() {
                       {exercise.sets.map((set, setIndex) => (
                         <li key={setIndex} className="flex items-center space-x-2">
                           <span>{set.weight}kg x {set.reps}</span>
-                          {set.isDropSet && <Zap className="h-4 w-4 text-blue-500" />}
+                          {set.isDropSet && (
+                            <span className="text-blue-500">
+                              → {set.dropsetWeight}kg x {set.dropsetReps} (Dropset)
+                            </span>
+                          )}
                           {set.isSetOfTheDay && <Star className="h-4 w-4 text-yellow-500" />}
                         </li>
                       ))}
@@ -738,6 +767,20 @@ export default function NewWorkoutPage() {
               onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked)}
             />
             <Label>Dropset</Label>
+            {set.isDropSet && (
+              <>
+                <Input
+                  value={set.dropsetWeight}
+                  onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
+                  placeholder="Dropset Weight"
+                />
+                <Input
+                  value={set.dropsetReps}
+                  onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
+                  placeholder="Dropset Reps"
+                />
+              </>
+            )}
             <Checkbox
               checked={set.isSetOfTheDay}
               onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked)}

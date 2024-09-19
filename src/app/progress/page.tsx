@@ -36,7 +36,10 @@ export default function ProgressPage() {
             exercise_sets (
               set_number,
               weight,
-              reps
+              reps,
+              is_dropset,
+              dropset_weight,
+              dropset_reps
             )
           )
         `)
@@ -221,23 +224,16 @@ export default function ProgressPage() {
                             >
                               <h3 className="font-semibold text-lg mb-2">{exercise.name}</h3>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {exercise.sets.reduce((acc: JSX.Element[], set: any, setIndex: number) => {
-                                  if (setIndex % 2 === 0) {
-                                    acc.push(
-                                      <div key={setIndex} className="flex flex-col sm:flex-row gap-2">
-                                        <div className="flex-1 bg-white p-2 rounded border border-gray-200">
-                                          <span className="font-medium">Set {setIndex + 1}:</span> {set.weight}kg x {set.reps}
-                                        </div>
-                                        {exercise.sets[setIndex + 1] && (
-                                          <div className="flex-1 bg-white p-2 rounded border border-gray-200">
-                                            <span className="font-medium">Set {setIndex + 2}:</span> {exercise.sets[setIndex + 1].weight}kg x {exercise.sets[setIndex + 1].reps}
-                                          </div>
-                                        )}
-                                      </div>
-                                    );
-                                  }
-                                  return acc;
-                                }, [])}
+                                {exercise.sets.map((set: any, setIndex: number) => (
+                                  <div key={setIndex} className="flex-1 bg-white p-2 rounded border border-gray-200">
+                                    <span className="font-medium">Set {setIndex + 1}:</span> {set.weight}kg x {set.reps}
+                                    {set.is_dropset && (
+                                      <span className="text-blue-500 ml-2">
+                                        → {set.dropset_weight}kg x {set.dropset_reps} (Dropset)
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
                               </div>
                             </motion.div>
                           ))}
