@@ -191,21 +191,21 @@ export default function ProgressPage() {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.5 }}
-                            className="relative w-full aspect-[3/4] md:aspect-[16/9] rounded-lg overflow-hidden"
+                            className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] rounded-lg overflow-hidden"
                           >
                             {workoutDetail.image ? (
                               <Image
                                 src={workoutDetail.image}
                                 alt="Workout selfie"
                                 fill
-                                className="object-cover rounded-lg"
+                                className="object-contain rounded-lg"
                               />
                             ) : (
                               <Image
                                 src="/placeholder.svg"
                                 alt="Placeholder"
                                 fill
-                                className="object-cover rounded-lg"
+                                className="object-contain rounded-lg"
                               />
                             )}
                           </motion.div>

@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 
 interface Set {
   weight: string;
@@ -72,6 +73,8 @@ export default function NewWorkoutPage() {
   const progressControls = useAnimation()
   const [showContinueModal, setShowContinueModal] = useState(false)
   const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null)
+  const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<string>('');
 
   const totalSteps = 5 // Total number of steps in the workout process
 
@@ -423,108 +426,99 @@ export default function NewWorkoutPage() {
       case 2:
         return (
           <div className="space-y-6">
-            {workout?.muscleGroups.map((muscleGroup) => (
-              <div key={muscleGroup} className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Suggested Exercises for {muscleGroup}:</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {suggestedExercises
-                    .filter(exercise => exercise.muscle_group === muscleGroup)
-                    .map((exercise) => (
-                      <Card 
-                        key={exercise.id} 
-                        className="cursor-pointer hover:bg-gray-100"
-                        onClick={() => {
-                          setCurrentExercise({
-                            id: exercise.id,
-                            name: exercise.name,
-                            sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }],
-                            muscle_group: exercise.muscle_group
-                          });
-                        }}
-                      >
-                        <CardContent className="p-4">
-                          {exercise.image_url && (
-                            <Image 
-                              src={exercise.image_url} 
-                              alt={exercise.name} 
-                              width={100} 
-                              height={100} 
-                              className="mb-2 rounded"
-                            />
-                          )}
-                          <p className="font-medium">{exercise.name}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                </div>
-              </div>
-            ))}
-
             <Card className="relative">
               <BackButton />
               <CardHeader>
-                <CardTitle>{currentExercise.name ? 'Current Exercise' : 'Add New Exercise'}</CardTitle>
+                <CardTitle>Add New Exercise</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input
-                  placeholder="Exercise name"
-                  value={currentExercise.name}
-                  onChange={handleExerciseNameChange}
-                />
-                <AnimatePresence>
-                  {currentExercise.sets.map((set, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3 }}
-                      className="flex space-x-2 items-center"
-                    >
-                      <Input
-                        placeholder="Weight"
-                        value={set.weight}
-                        onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                        className="w-1/3"
-                      />
-                      <Input
-                        placeholder="Reps"
-                        value={set.reps}
-                        onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                        className="w-1/3"
-                      />
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`dropset-${index}`}
-                          checked={set.isDropSet}
-                          onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked as boolean)}
-                        />
-                        <Label htmlFor={`dropset-${index}`}>Dropset</Label>
+                <Select onValueChange={handleExerciseSelect} value={selectedExerciseId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select an exercise" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {workout?.muscleGroups.map((group, index) => (
+                      <div key={group}>
+                        {index > 0 && <Separator className="my-2" />}
+                        <SelectItem value={`group-${group}`} disabled className="font-semibold text-primary">
+                          {group}
+                        </SelectItem>
+                        {availableExercises
+                          .filter(exercise => exercise.muscle_group === group)
+                          .map(exercise => (
+                            <SelectItem key={exercise.id} value={exercise.id} className="pl-4">
+                              {exercise.name}
+                            </SelectItem>
+                          ))}
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`sotd-${index}`}
-                          checked={set.isSetOfTheDay}
-                          onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked as boolean)}
-                        />
-                        <Label htmlFor={`sotd-${index}`}>
-                          <Star className="h-4 w-4 text-yellow-500" />
-                        </Label>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                <div className="flex space-x-2">
-                  <Button onClick={() => addSet()} variant="outline" className="w-1/2">
-                    <Plus className="mr-2 h-4 w-4" /> Add Set
-                  </Button>
-                  <Button onClick={() => addSet(true)} variant="outline" className="w-1/2">
-                    <Zap className="mr-2 h-4 w-4" /> Add Dropset
-                  </Button>
-                </div>
-                <Button onClick={saveExercise} className="w-full bg-green-500 hover:bg-green-600 text-white">
-                  <Check className="mr-2 h-4 w-4" /> Save Exercise
-                </Button>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {currentExercise.name && (
+                  <>
+                    <Input
+                      placeholder="Exercise name"
+                      value={currentExercise.name}
+                      onChange={handleExerciseNameChange}
+                      disabled
+                    />
+                    <AnimatePresence>
+                      {currentExercise.sets.map((set, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex space-x-2 items-center"
+                        >
+                          <Input
+                            placeholder="Weight"
+                            value={set.weight}
+                            onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+                            className="w-1/3"
+                          />
+                          <Input
+                            placeholder="Reps"
+                            value={set.reps}
+                            onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                            className="w-1/3"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`dropset-${index}`}
+                              checked={set.isDropSet}
+                              onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked as boolean)}
+                            />
+                            <Label htmlFor={`dropset-${index}`}>Dropset</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`sotd-${index}`}
+                              checked={set.isSetOfTheDay}
+                              onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked as boolean)}
+                            />
+                            <Label htmlFor={`sotd-${index}`}>
+                              <Star className="h-4 w-4 text-yellow-500" />
+                            </Label>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                    <div className="flex space-x-2">
+                      <Button onClick={() => addSet()} variant="outline" className="w-1/2">
+                        <Plus className="mr-2 h-4 w-4" /> Add Set
+                      </Button>
+                      <Button onClick={() => addSet(true)} variant="outline" className="w-1/2">
+                        <Zap className="mr-2 h-4 w-4" /> Add Dropset
+                      </Button>
+                    </div>
+                    <Button onClick={saveExercise} className="w-full bg-green-500 hover:bg-green-600 text-white">
+                      <Check className="mr-2 h-4 w-4" /> Save Exercise
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -782,6 +776,35 @@ export default function NewWorkoutPage() {
       throw new Error('Failed to fetch exercises');
     }
     return response.json();
+  };
+
+  useEffect(() => {
+    if (workout?.muscleGroups.length) {
+      fetchExercisesForMuscleGroups(workout.muscleGroups);
+    }
+  }, [workout?.muscleGroups]);
+
+  const fetchExercisesForMuscleGroups = async (muscleGroups: string[]) => {
+    const response = await fetch(`/api/exercises?muscleGroups=${muscleGroups.join(',')}`);
+    if (response.ok) {
+      const exercises = await response.json();
+      setAvailableExercises(exercises);
+    } else {
+      console.error('Failed to fetch exercises');
+    }
+  };
+
+  const handleExerciseSelect = (exerciseId: string) => {
+    const selectedExercise = availableExercises.find(ex => ex.id === exerciseId);
+    if (selectedExercise) {
+      setCurrentExercise({
+        id: selectedExercise.id,
+        name: selectedExercise.name,
+        sets: [{ weight: '', reps: '', isDropSet: false, isSetOfTheDay: false }],
+        muscle_group: selectedExercise.muscle_group
+      });
+      setSelectedExerciseId(exerciseId);
+    }
   };
 
   return (
