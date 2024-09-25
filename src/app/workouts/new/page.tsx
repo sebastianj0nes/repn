@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge, Pencil, LucideIcon, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge, Pencil, LucideIcon, ThumbsDown, ThumbsUp, Minus, AlertCircle, Trash2 } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Confetti from 'react-confetti'
 import Link from 'next/link'
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface Set {
   weight?: number | null;
@@ -79,6 +80,7 @@ export default function NewWorkoutPage() {
   const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null)
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string>('');
+  const [setErrors, setSetErrors] = useState<{ [key: number]: string }>({});
 
   const totalSteps = 5 // Total number of steps in the workout process
 
@@ -201,6 +203,42 @@ export default function NewWorkoutPage() {
       }
       return { ...prev, sets: newSets }
     })
+    // Clear error when user starts typing
+    setSetErrors(prev => ({ ...prev, [index]: '' }));
+  }
+
+  const removeSet = (index: number) => {
+    setCurrentExercise(prev => ({
+      ...prev,
+      sets: prev.sets.filter((_, i) => i !== index)
+    }));
+    // Remove error for the deleted set
+    setSetErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[index];
+      return newErrors;
+    });
+  }
+
+  const validateSets = (): boolean => {
+    const newErrors: { [key: number]: string } = {};
+    let isValid = true;
+
+    currentExercise.sets.forEach((set, index) => {
+      if (currentExercise.exercise_type === 'weights' && (!set.weight || !set.reps)) {
+        newErrors[index] = 'Weight and reps are required for weight exercises.';
+        isValid = false;
+      } else if (currentExercise.exercise_type === 'bodyweight' && !set.reps) {
+        newErrors[index] = 'Reps are required for bodyweight exercises.';
+        isValid = false;
+      } else if (currentExercise.exercise_type === 'time' && !set.duration) {
+        newErrors[index] = 'Duration is required for time-based exercises.';
+        isValid = false;
+      }
+    });
+
+    setSetErrors(newErrors);
+    return isValid;
   }
 
   const addSet = (isDropSet: boolean = false) => {
@@ -211,18 +249,11 @@ export default function NewWorkoutPage() {
   }
 
   const saveExercise = () => {
-    if (currentExercise.name && currentExercise.sets.some(set => {
-      switch (currentExercise.exercise_type) {
-        case 'weights':
-          return set.weight && set.reps;
-        case 'bodyweight':
-          return set.reps;
-        case 'time':
-          return set.duration;
-        default:
-          return false;
-      }
-    })) {
+    if (!validateSets()) {
+      return; // Don't save if validation fails
+    }
+
+    if (currentExercise.name && currentExercise.sets.length > 0) {
       setWorkout(prev => {
         if (!prev) return null;
         return {
@@ -232,8 +263,12 @@ export default function NewWorkoutPage() {
             exercise_id: currentExercise.id
           }]
         };
-      })
-      setCurrentExercise({ id: '', name: '', sets: [{ isDropSet: false, isSetOfTheDay: false }], muscle_group: '', exercise_type: 'weights' })
+      });
+
+      setAvailableExercises(prev => prev.filter(ex => ex.id !== currentExercise.id));
+      setCurrentExercise({ id: '', name: '', sets: [{ isDropSet: false, isSetOfTheDay: false }], muscle_group: '', exercise_type: 'weights' });
+      setSelectedExerciseId('');
+      setSetErrors({});
     }
   }
 
@@ -420,6 +455,80 @@ export default function NewWorkoutPage() {
     ))
   }
 
+  const renderSetInputs = (set: Set, index: number) => {
+    return (
+      <div className="flex items-center space-x-4 mb-4">
+        <div className="flex-grow flex space-x-2 items-center">
+          {currentExercise.exercise_type === 'weights' && (
+            <>
+              <Input
+                placeholder="Weight"
+                value={set.weight || ''}
+                onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+                className="w-1/3"
+              />
+              <Input
+                placeholder="Reps"
+                value={set.reps || ''}
+                onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                className="w-1/3"
+              />
+            </>
+          )}
+          {currentExercise.exercise_type === 'bodyweight' && (
+            <Input
+              placeholder="Reps"
+              value={set.reps || ''}
+              onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+              className="w-1/2"
+            />
+          )}
+          {currentExercise.exercise_type === 'time' && (
+            <Input
+              placeholder="Duration (seconds)"
+              value={set.duration || ''}
+              onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
+              className="w-1/2"
+            />
+          )}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id={`dropset-${index}`}
+              checked={set.isDropSet}
+              onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked as boolean)}
+            />
+            <Label htmlFor={`dropset-${index}`}>Dropset</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id={`sotd-${index}`}
+              checked={set.isSetOfTheDay}
+              onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked as boolean)}
+            />
+            <Label htmlFor={`sotd-${index}`}>
+              <Star className="h-4 w-4 text-yellow-500" />
+            </Label>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => removeSet(index)}
+          className="flex-shrink-0 text-red-500 hover:text-red-700"
+        >
+          <Trash2 className="h-4 w-4 mr-1" /> Remove Set
+        </Button>
+        {setErrors[index] && (
+          <Alert variant="destructive" className="mt-2 w-full">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{setErrors[index]}</AlertDescription>
+          </Alert>
+        )}
+      </div>
+    );
+  };
+
   const renderStep = () => {
     const BackButton = () => (
       <Button
@@ -519,40 +628,6 @@ export default function NewWorkoutPage() {
                           className="flex space-x-2 items-center"
                         >
                           {renderSetInputs(set, index)}
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`dropset-${index}`}
-                              checked={set.isDropSet}
-                              onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked as boolean)}
-                            />
-                            <Label htmlFor={`dropset-${index}`}>Dropset</Label>
-                          </div>
-                          {set.isDropSet && (
-                            <>
-                              <Input
-                                placeholder="Dropset Weight"
-                                value={set.dropsetWeight}
-                                onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
-                                className="w-1/4"
-                              />
-                              <Input
-                                placeholder="Dropset Reps"
-                                value={set.dropsetReps}
-                                onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
-                                className="w-1/4"
-                              />
-                            </>
-                          )}
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`sotd-${index}`}
-                              checked={set.isSetOfTheDay}
-                              onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked as boolean)}
-                            />
-                            <Label htmlFor={`sotd-${index}`}>
-                              <Star className="h-4 w-4 text-yellow-500" />
-                            </Label>
-                          </div>
                         </motion.div>
                       ))}
                     </AnimatePresence>
@@ -891,48 +966,6 @@ export default function NewWorkoutPage() {
     }
   };
 
-  const renderSetInputs = (set: Set, index: number) => {
-    switch (currentExercise.exercise_type) {
-      case 'weights':
-        return (
-          <>
-            <Input
-              placeholder="Weight"
-              value={set.weight || ''}
-              onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-              className="w-1/4"
-            />
-            <Input
-              placeholder="Reps"
-              value={set.reps || ''}
-              onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-              className="w-1/4"
-            />
-          </>
-        );
-      case 'bodyweight':
-        return (
-          <Input
-            placeholder="Reps"
-            value={set.reps || ''}
-            onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-            className="w-1/4"
-          />
-        );
-      case 'time':
-        return (
-          <Input
-            placeholder="Duration (seconds)"
-            value={set.duration || ''}
-            onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
-            className="w-1/4"
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   useEffect(() => {
     fetchMuscleGroups();
   }, []);
@@ -968,7 +1001,11 @@ export default function NewWorkoutPage() {
     const response = await fetch(`/api/exercises?muscleGroups=${muscleGroups.join(',')}`);
     if (response.ok) {
       const exercises = await response.json();
-      setAvailableExercises(exercises);
+      // Filter out exercises that are already in the workout
+      const availableExercises = exercises.filter(
+        (exercise: Exercise) => !workout?.exercises.some(ex => ex.id === exercise.id)
+      );
+      setAvailableExercises(availableExercises);
     } else {
       console.error('Failed to fetch exercises');
     }
