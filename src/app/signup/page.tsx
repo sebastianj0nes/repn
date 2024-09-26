@@ -1,121 +1,135 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { supabase } from '@/lib/supabase'
-import { motion } from "framer-motion"
-import { Dumbbell } from 'lucide-react'
-import Link from 'next/link'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Icons } from "@/components/ui/icons";
 
-export default function SignUp() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+
+export default function SignUpPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({ 
-        email, 
+      const { data, error } = await supabase.auth.signUp({
+        email,
         password,
         options: {
           data: {
-            name: name
-          }
-        }
-      })
-      if (error) throw error
-      alert('Check your email for the confirmation link!')
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message)
-      } else {
-        alert('An unknown error occurred')
-      }
-    }
-  }
+            full_name: name, // Add this line
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
-  const handleGoogleSignUp = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      })
-      if (error) throw error
+      if (error) {
+        console.error('Signup error:', error);
+        throw error;
+      }
+
+      if (data.user) {
+        console.log('Signup successful:', data.user);
+        alert('Signup successful! Please check your email to confirm your account.');
+        router.push('/signin');
+      }
     } catch (error) {
       if (error instanceof Error) {
-        alert(error.message)
+        console.error('Caught error:', error);
+        alert(error.message);
       } else {
-        alert('An unknown error occurred')
+        console.error('Unknown error:', error);
+        alert('An unknown error occurred');
       }
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="container mx-auto flex items-center justify-center min-h-screen bg-background">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card className="w-full max-w-md overflow-hidden">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center justify-center mb-4">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              >
-                <Dumbbell className="h-12 w-12 text-secondary" />
-              </motion.div>
+    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-200 flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-blue-800">FitTrack</h1>
+          <p className="text-blue-600 mt-2">Start tracking your fitness the right way.</p>
+        </div>
+
+        <div className="bg-white shadow-md rounded-lg p-6 space-y-6">
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input 
+                id="name" 
+                placeholder="John Doe" 
+                required 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
-            <CardTitle className="text-2xl font-bold text-center">Create your FitTrack account</CardTitle>
-            <CardDescription className="text-center">Enter your details to get started on your fitness journey</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-              </div>
-              <Button type="submit" className="w-full">
-                Sign Up
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="relative w-full">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-muted" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                placeholder="john@example.com" 
+                type="email" 
+                required 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignUp}>
-              Sign up with Google
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading && (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Sign Up
             </Button>
-            <p className="text-center text-sm">
-              Already have an account?{' '}
-              <Link href="/signin" className="text-secondary hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
-      </motion.div>
+          </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-gray-600">
+            Already have an account?{' '}
+            <a href="/signin" className="font-medium text-blue-600 hover:underline">
+              Log in
+            </a>
+          </p>
+        </div>
+
+        <div className="mt-8 text-center">
+
+          <p className="mt-4 text-sm text-blue-800">
+            &quot;The difference between try and triumph is just a little umph!&quot;
+          </p>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
