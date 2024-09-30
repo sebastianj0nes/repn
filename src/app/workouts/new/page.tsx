@@ -457,40 +457,69 @@ export default function NewWorkoutPage() {
 
   const renderSetInputs = (set: Set, index: number) => {
     return (
-      <div className="flex items-center space-x-4 mb-4">
-        <div className="flex-grow flex space-x-2 items-center">
+      <div className="flex flex-col space-y-4 mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="font-semibold">Set {index + 1}</h4>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => removeSet(index)}
+            className="text-red-500 hover:text-red-700"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2 items-center">
           {currentExercise.exercise_type === 'weights' && (
             <>
-              <Input
-                placeholder="Weight"
-                value={set.weight || ''}
-                onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                className="w-1/3"
-              />
-              <Input
-                placeholder="Reps"
-                value={set.reps || ''}
-                onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                className="w-1/3"
-              />
+              <div className="flex-1 min-w-[120px]">
+                <Label htmlFor={`weight-${index}`}>Weight</Label>
+                <Input
+                  id={`weight-${index}`}
+                  placeholder="Weight"
+                  value={set.weight || ''}
+                  onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex-1 min-w-[120px]">
+                <Label htmlFor={`reps-${index}`}>Reps</Label>
+                <Input
+                  id={`reps-${index}`}
+                  placeholder="Reps"
+                  value={set.reps || ''}
+                  onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                  className="w-full"
+                />
+              </div>
             </>
           )}
           {currentExercise.exercise_type === 'bodyweight' && (
-            <Input
-              placeholder="Reps"
-              value={set.reps || ''}
-              onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-              className="w-1/2"
-            />
+            <div className="flex-1 min-w-[120px]">
+              <Label htmlFor={`reps-${index}`}>Reps</Label>
+              <Input
+                id={`reps-${index}`}
+                placeholder="Reps"
+                value={set.reps || ''}
+                onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                className="w-full"
+              />
+            </div>
           )}
           {currentExercise.exercise_type === 'time' && (
-            <Input
-              placeholder="Duration (seconds)"
-              value={set.duration || ''}
-              onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
-              className="w-1/2"
-            />
+            <div className="flex-1 min-w-[120px]">
+              <Label htmlFor={`duration-${index}`}>Duration (seconds)</Label>
+              <Input
+                id={`duration-${index}`}
+                placeholder="Duration (seconds)"
+                value={set.duration || ''}
+                onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
+                className="w-full"
+              />
+            </div>
           )}
+        </div>
+        <div className="flex flex-wrap gap-4 items-center">
           <div className="flex items-center space-x-2">
             <Checkbox
               id={`dropset-${index}`}
@@ -510,14 +539,30 @@ export default function NewWorkoutPage() {
             </Label>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => removeSet(index)}
-          className="flex-shrink-0 text-red-500 hover:text-red-700"
-        >
-          <Trash2 className="h-4 w-4 mr-1" /> Remove Set
-        </Button>
+        {set.isDropSet && (
+          <div className="flex flex-wrap gap-2 items-center mt-2">
+            <div className="flex-1 min-w-[120px]">
+              <Label htmlFor={`dropset-weight-${index}`}>Dropset Weight</Label>
+              <Input
+                id={`dropset-weight-${index}`}
+                placeholder="Dropset Weight"
+                value={set.dropsetWeight || ''}
+                onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="flex-1 min-w-[120px]">
+              <Label htmlFor={`dropset-reps-${index}`}>Dropset Reps</Label>
+              <Input
+                id={`dropset-reps-${index}`}
+                placeholder="Dropset Reps"
+                value={set.dropsetReps || ''}
+                onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
         {setErrors[index] && (
           <Alert variant="destructive" className="mt-2 w-full">
             <AlertCircle className="h-4 w-4" />
@@ -906,42 +951,101 @@ export default function NewWorkoutPage() {
           onChange={(e) => setEditedExercise({ ...editedExercise, name: e.target.value })}
         />
         {editedExercise.sets.map((set, index) => (
-          <div key={index} className="flex space-x-2">
-            {renderSetInputs(set, index)}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={`dropset-${index}`}
-                checked={set.isDropSet}
-                onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked as boolean)}
-              />
-              <Label htmlFor={`dropset-${index}`}>Dropset</Label>
+          <div key={index} className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {editedExercise.exercise_type === 'weights' && (
+                <>
+                  <div className="flex-1 min-w-[120px]">
+                    <Label htmlFor={`edit-weight-${index}`}>Weight</Label>
+                    <Input
+                      id={`edit-weight-${index}`}
+                      placeholder="Weight"
+                      value={set.weight || ''}
+                      onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-[120px]">
+                    <Label htmlFor={`edit-reps-${index}`}>Reps</Label>
+                    <Input
+                      id={`edit-reps-${index}`}
+                      placeholder="Reps"
+                      value={set.reps || ''}
+                      onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                </>
+              )}
+              {editedExercise.exercise_type === 'bodyweight' && (
+                <div className="flex-1 min-w-[120px]">
+                  <Label htmlFor={`edit-reps-${index}`}>Reps</Label>
+                  <Input
+                    id={`edit-reps-${index}`}
+                    placeholder="Reps"
+                    value={set.reps || ''}
+                    onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+              )}
+              {editedExercise.exercise_type === 'time' && (
+                <div className="flex-1 min-w-[120px]">
+                  <Label htmlFor={`edit-duration-${index}`}>Duration (seconds)</Label>
+                  <Input
+                    id={`edit-duration-${index}`}
+                    placeholder="Duration (seconds)"
+                    value={set.duration || ''}
+                    onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id={`edit-dropset-${index}`}
+                  checked={set.isDropSet}
+                  onCheckedChange={(checked) => handleSetChange(index, 'isDropSet', checked as boolean)}
+                />
+                <Label htmlFor={`edit-dropset-${index}`}>Dropset</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id={`edit-sotd-${index}`}
+                  checked={set.isSetOfTheDay}
+                  onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked as boolean)}
+                />
+                <Label htmlFor={`edit-sotd-${index}`}>
+                  <Star className="h-4 w-4 text-yellow-500" />
+                </Label>
+              </div>
             </div>
             {set.isDropSet && (
-              <>
-                <Input
-                  placeholder="Dropset Weight"
-                  value={set.dropsetWeight}
-                  onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
-                  className="w-1/4"
-                />
-                <Input
-                  placeholder="Dropset Reps"
-                  value={set.dropsetReps}
-                  onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
-                  className="w-1/4"
-                />
-              </>
+              <div className="flex flex-wrap gap-2">
+                <div className="flex-1 min-w-[120px]">
+                  <Label htmlFor={`edit-dropset-weight-${index}`}>Dropset Weight</Label>
+                  <Input
+                    id={`edit-dropset-weight-${index}`}
+                    placeholder="Dropset Weight"
+                    value={set.dropsetWeight || ''}
+                    onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex-1 min-w-[120px]">
+                  <Label htmlFor={`edit-dropset-reps-${index}`}>Dropset Reps</Label>
+                  <Input
+                    id={`edit-dropset-reps-${index}`}
+                    placeholder="Dropset Reps"
+                    value={set.dropsetReps || ''}
+                    onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+              </div>
             )}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={`sotd-${index}`}
-                checked={set.isSetOfTheDay}
-                onCheckedChange={(checked) => handleSetChange(index, 'isSetOfTheDay', checked as boolean)}
-              />
-              <Label htmlFor={`sotd-${index}`}>
-                <Star className="h-4 w-4 text-yellow-500" />
-              </Label>
-            </div>
           </div>
         ))}
         <div className="flex space-x-2">
