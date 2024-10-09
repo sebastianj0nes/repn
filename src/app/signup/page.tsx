@@ -26,7 +26,7 @@ export default function SignUpPage() {
         password,
         options: {
           data: {
-            full_name: name, // Add this line
+            full_name: name, 
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
