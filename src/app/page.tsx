@@ -1,17 +1,32 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useRouter } from 'next/navigation'
 import Dashboard from '@/components/Dashboard'
 
-export default async function Home() {
-  const supabase = createServerComponentClient({ cookies })
+export default function Home() {
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+  const supabase = createClientComponentClient()
 
-  
-  const { data: { session } } = await supabase.auth.getSession()
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/signin')
+      } else {
+        setIsLoading(false)
+      }
+    }
+    checkSession()
+  }, [supabase.auth, router])
 
-  if (!session) {
-    redirect('/signin')
+  if (isLoading) {
+    return <div>Loading...</div>
   }
 
-  return <Dashboard />
+  return (
+    <Dashboard/>
+  )
 }
