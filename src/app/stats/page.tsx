@@ -17,7 +17,7 @@ export default function StatsPage() {
   const [totalWorkouts, setTotalWorkouts] = useState(0)
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>("all")
   const [workouts, setWorkouts] = useState<Workout[]>([])
-  const [debugInfo, setDebugInfo] = useState<string>('')
+  const [longestStreak, setLongestStreak] = useState(0)
 
   const supabase = createClientComponentClient<Database>()
 
@@ -30,7 +30,7 @@ export default function StatsPage() {
         .from('workouts')
         .select('*')
         .eq('user_id', user.id)
-        .order('date', { ascending: false })
+        .order('date', { ascending: false }) // Keep descending order for display
 
       if (workoutsError) {
         console.error('Error fetching workouts:', workoutsError)
@@ -39,6 +39,7 @@ export default function StatsPage() {
 
       setWorkouts(workoutsData)
       setTotalWorkouts(workoutsData.length)
+      setLongestStreak(calculateLongestStreak(workoutsData))
     }
 
     fetchWorkouts()
@@ -53,9 +54,31 @@ export default function StatsPage() {
         return workoutMuscleGroups.includes(selectedMuscleGroup!.toLowerCase())
       })
 
-  useEffect(() => {
-    setDebugInfo(`Selected: ${selectedMuscleGroup}, Filtered: ${filteredWorkouts.length}, Total: ${workouts.length}`)
-  }, [selectedMuscleGroup, filteredWorkouts, workouts])
+  const calculateLongestStreak = (workouts: Workout[]): number => {
+    if (workouts.length === 0) return 0;
+
+    let currentStreak = 1;
+    let longestStreak = 1;
+    let previousDate = new Date(workouts[0].date);
+
+    for (let i = 1; i < workouts.length; i++) {
+      const currentDate = new Date(workouts[i].date);
+      const diffDays = Math.floor((previousDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24));
+
+      if (diffDays === 1) {
+        currentStreak++;
+        if (currentStreak > longestStreak) {
+          longestStreak = currentStreak;
+        }
+      } else if (diffDays > 1) {
+        currentStreak = 1;
+      }
+
+      previousDate = currentDate;
+    }
+
+    return longestStreak;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -66,9 +89,9 @@ export default function StatsPage() {
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-2xl font-bold mb-4">Your Workout Stats</h1>
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center">
                   <BarChart2Icon className="w-8 h-8 mr-3 text-primary" />
                   <div>
@@ -76,15 +99,20 @@ export default function StatsPage() {
                     <p className="text-2xl font-bold">{totalWorkouts}</p>
                   </div>
                 </div>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <ChevronDownIcon className="w-6 h-6 text-muted-foreground" />
-                </motion.div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <CalendarIcon className="w-8 h-8 mr-3 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Longest Streak</p>
+                    <p className="text-2xl font-bold">{longestStreak} days</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </motion.div>
 
         <motion.div
@@ -105,35 +133,26 @@ export default function StatsPage() {
             </SelectContent>
           </Select>
 
-          {/* Debug info */}
-          <p className="text-sm text-muted-foreground mb-2">{debugInfo}</p>
-
           <ScrollArea className="h-[calc(100vh-300px)]">
-            {filteredWorkouts.map((workout) => (
-              <motion.div
-                key={workout.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className="mb-4">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center">
-                        <DumbbellIcon className="w-5 h-5 mr-2 text-primary" />
-                        <span className="font-medium">{workout.muscle_group}</span>
-                      </div>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <CalendarIcon className="w-4 h-4 mr-1" />
-                        {new Date(workout.date).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <p className="text-sm mb-2">Feeling: {workout.feeling}</p>
-                    <p className="text-sm font-medium">Star of the Day: {workout.sotd}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            <div className="grid grid-cols-2 gap-4">
+              {filteredWorkouts.map((workout) => (
+                <motion.div
+                  key={workout.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="h-32 flex flex-col items-center justify-center text-center">
+                    <CardContent className="p-2">
+                      <p className="text-xs text-muted-foreground mb-1">{workout.muscle_group}</p>
+                      <p className="text-lg font-bold mb-1">
+                        {new Date(workout.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
           </ScrollArea>
         </motion.div>
       </main>
