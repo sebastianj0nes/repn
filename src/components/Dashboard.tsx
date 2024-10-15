@@ -67,7 +67,7 @@ export default function Dashboard() {
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-4xl font-bold mb-6 text-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary"
+        className="text-4xl font-bold mb-6 text-center bg-clip-text bg-gradient-to-r from-primary to-secondary"
       >
         {greeting}!
       </motion.h1>

@@ -1,23 +1,35 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { ChevronDownIcon, BarChart2Icon, DumbbellIcon, CalendarIcon } from 'lucide-react'
-import { Card, CardContent } from "@/components/ui/card"
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronDownIcon, ChevronUpIcon, BarChart2Icon, DumbbellIcon, CalendarIcon, Loader2 } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import BottomNav from '@/components/BottomNav'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/lib/database.types'
+import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 type Workout = Database['public']['tables']['workouts']['Row']
 type Exercise = Database['public']['tables']['exercises']['Row']
+type ExerciseSet = Database['public']['tables']['exercise_sets']['Row']
 
 export default function StatsPage() {
   const [totalWorkouts, setTotalWorkouts] = useState(0)
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>("all")
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [longestStreak, setLongestStreak] = useState(0)
+  const [isWorkoutSectionOpen, setIsWorkoutSectionOpen] = useState(true)
+  const [isExerciseSectionOpen, setIsExerciseSectionOpen] = useState(true)
+  const [selectedExercise, setSelectedExercise] = useState<string>('')
+  const [exerciseData, setExerciseData] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const observer = useRef<IntersectionObserver | null>(null)
+  const lastElementRef = useRef<HTMLTableRowElement | null>(null)
 
   const supabase = createClientComponentClient<Database>()
 
@@ -44,6 +56,75 @@ export default function StatsPage() {
 
     fetchWorkouts()
   }, [supabase])
+
+  useEffect(() => {
+    const fetchExercises = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: exercisesData, error: exercisesError } = await supabase
+        .from('exercises_library')
+        .select('name')
+
+      if (exercisesError) {
+        console.error('Error fetching exercises:', exercisesError)
+        return
+      }
+
+      if (exercisesData.length > 0) {
+        setSelectedExercise(exercisesData[0].name)
+      }
+    }
+
+    fetchExercises()
+  }, [supabase])
+
+  useEffect(() => {
+    setExerciseData([])
+    setPage(1)
+    loadMoreData()
+  }, [selectedExercise])
+
+  const loadMoreData = async () => {
+    if (!selectedExercise) return
+
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: exerciseData, error: exerciseError } = await supabase
+      .from('exercises')
+      .select(`
+        id,
+        workout_id,
+        name,
+        max_weight,
+        total_volume,
+        total_sets,
+        workouts (date),
+        exercise_sets (set_number, weight, reps)
+      `)
+      .eq('name', selectedExercise)
+      .order('workouts.date', { ascending: false })
+      .range((page - 1) * 10, page * 10 - 1)
+
+    if (exerciseError) {
+      console.error('Error fetching exercise data:', exerciseError)
+      setLoading(false)
+      return
+    }
+
+    const formattedData = exerciseData.map((exercise: any) => ({
+      date: exercise.workouts.date,
+      weight: exercise.max_weight,
+      reps: Math.floor(exercise.total_volume / exercise.max_weight),
+      sets: exercise.exercise_sets
+    }))
+
+    setExerciseData(prev => [...prev, ...formattedData])
+    setPage(prev => prev + 1)
+    setLoading(false)
+  }
 
   const muscleGroups = ['Chest', 'Back', 'Legs', 'Shoulder', 'Core', 'Tricep', 'Bicep']
 
@@ -120,40 +201,125 @@ export default function StatsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <h2 className="text-xl font-semibold mb-3">Workouts by Muscle Group</h2>
-          <Select onValueChange={(value) => setSelectedMuscleGroup(value)} defaultValue="all">
-            <SelectTrigger className="w-full mb-4">
-              <SelectValue placeholder="Select muscle group" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All muscle groups</SelectItem>
-              {muscleGroups.map((group) => (
-                <SelectItem key={group} value={group}>{group}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-xl font-semibold">Workouts by Muscle Group</h2>
+            <button
+              onClick={() => setIsWorkoutSectionOpen(!isWorkoutSectionOpen)}
+              className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              {isWorkoutSectionOpen ? (
+                <ChevronUpIcon className="w-6 h-6" />
+              ) : (
+                <ChevronDownIcon className="w-6 h-6" />
+              )}
+            </button>
+          </div>
 
-          <ScrollArea className="h-[calc(100vh-300px)]">
-            <div className="grid grid-cols-2 gap-4">
-              {filteredWorkouts.map((workout) => (
-                <motion.div
-                  key={workout.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="h-32 flex flex-col items-center justify-center text-center">
-                    <CardContent className="p-2">
-                      <p className="text-xs text-muted-foreground mb-1">{workout.muscle_group}</p>
-                      <p className="text-lg font-bold mb-1">
-                        {new Date(workout.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </ScrollArea>
+          <AnimatePresence>
+            {isWorkoutSectionOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Select onValueChange={(value) => setSelectedMuscleGroup(value)} defaultValue="all">
+                  <SelectTrigger className="w-full mb-4">
+                    <SelectValue placeholder="Select muscle group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All muscle groups</SelectItem>
+                    {muscleGroups.map((group) => (
+                      <SelectItem key={group} value={group}>{group}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <ScrollArea className="h-[calc(100vh-300px)]">
+                  <div className="grid grid-cols-2 gap-4">
+                    {filteredWorkouts.map((workout) => (
+                      <motion.div
+                        key={workout.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Card className="h-32 flex flex-col items-center justify-center text-center">
+                          <CardContent className="p-2">
+                            <p className="text-xs text-muted-foreground mb-1">{workout.muscle_group}</p>
+                            <p className="text-lg font-bold mb-1">
+                              {new Date(workout.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-xl font-semibold">Exercise Progress Tracker</h2>
+            <button
+              onClick={() => setIsExerciseSectionOpen(!isExerciseSectionOpen)}
+              className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              {isExerciseSectionOpen ? (
+                <ChevronUpIcon className="w-6 h-6" />
+              ) : (
+                <ChevronDownIcon className="w-6 h-6" />
+              )}
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {isExerciseSectionOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="w-full max-w-[100vw]">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-center mb-3">
+                      <h2 className="text-xl font-semibold">Exercise Progress Tracker</h2>
+                      <button
+                        onClick={() => setIsExerciseSectionOpen(!isExerciseSectionOpen)}
+                        className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        {isExerciseSectionOpen ? (
+                          <ChevronUpIcon className="w-6 h-6" />
+                        ) : (
+                          <ChevronDownIcon className="w-6 h-6" />
+                        )}
+                      </button>
+                    </div>
+
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={exerciseData}>
+                        <Line type="monotone" dataKey="weight" stroke="#8884d8" />
+                        <Line type="monotone" dataKey="reps" stroke="#82ca9d" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip />
+                        <Legend />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </main>
       <BottomNav />

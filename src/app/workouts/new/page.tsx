@@ -25,6 +25,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { cn } from "@/lib/utils"
 
 interface Set {
   weight?: number | null;
@@ -60,6 +61,8 @@ const muscleGroups: { name: string; icon: LucideIcon }[] = [
   { name: 'Core', icon: Brain },
   { name: 'Cardio', icon: Footprints },
 ]
+
+const numberInputClass = "appearance-textfield [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 
 export default function NewWorkoutPage() {
   const [step, setStep] = useState(1)
@@ -476,20 +479,25 @@ export default function NewWorkoutPage() {
                 <Label htmlFor={`weight-${index}`}>Weight</Label>
                 <Input
                   id={`weight-${index}`}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
                   placeholder="Weight"
                   value={set.weight || ''}
                   onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                  className="w-full"
+                  className={cn("w-full", numberInputClass)}
                 />
               </div>
               <div className="flex-1 min-w-[120px]">
                 <Label htmlFor={`reps-${index}`}>Reps</Label>
                 <Input
                   id={`reps-${index}`}
+                  type="number"
+                  inputMode="numeric"
                   placeholder="Reps"
                   value={set.reps || ''}
                   onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                  className="w-full"
+                  className={cn("w-full", numberInputClass)}
                 />
               </div>
             </>
@@ -499,10 +507,12 @@ export default function NewWorkoutPage() {
               <Label htmlFor={`reps-${index}`}>Reps</Label>
               <Input
                 id={`reps-${index}`}
+                type="number"
+                inputMode="numeric"
                 placeholder="Reps"
                 value={set.reps || ''}
                 onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                className="w-full"
+                className={cn("w-full", numberInputClass)}
               />
             </div>
           )}
@@ -511,10 +521,12 @@ export default function NewWorkoutPage() {
               <Label htmlFor={`duration-${index}`}>Duration (seconds)</Label>
               <Input
                 id={`duration-${index}`}
+                type="number"
+                inputMode="numeric"
                 placeholder="Duration (seconds)"
                 value={set.duration || ''}
                 onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
-                className="w-full"
+                className={cn("w-full", numberInputClass)}
               />
             </div>
           )}
@@ -959,20 +971,25 @@ export default function NewWorkoutPage() {
                     <Label htmlFor={`edit-weight-${index}`}>Weight</Label>
                     <Input
                       id={`edit-weight-${index}`}
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
                       placeholder="Weight"
                       value={set.weight || ''}
                       onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                      className="w-full"
+                      className={cn("w-full", numberInputClass)}
                     />
                   </div>
                   <div className="flex-1 min-w-[120px]">
                     <Label htmlFor={`edit-reps-${index}`}>Reps</Label>
                     <Input
                       id={`edit-reps-${index}`}
+                      type="number"
+                      inputMode="numeric"
                       placeholder="Reps"
                       value={set.reps || ''}
                       onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                      className="w-full"
+                      className={cn("w-full", numberInputClass)}
                     />
                   </div>
                 </>
@@ -982,10 +999,12 @@ export default function NewWorkoutPage() {
                   <Label htmlFor={`edit-reps-${index}`}>Reps</Label>
                   <Input
                     id={`edit-reps-${index}`}
+                    type="number"
+                    inputMode="numeric"
                     placeholder="Reps"
                     value={set.reps || ''}
                     onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                    className="w-full"
+                    className={cn("w-full", numberInputClass)}
                   />
                 </div>
               )}
@@ -994,10 +1013,12 @@ export default function NewWorkoutPage() {
                   <Label htmlFor={`edit-duration-${index}`}>Duration (seconds)</Label>
                   <Input
                     id={`edit-duration-${index}`}
+                    type="number"
+                    inputMode="numeric"
                     placeholder="Duration (seconds)"
                     value={set.duration || ''}
                     onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
-                    className="w-full"
+                    className={cn("w-full", numberInputClass)}
                   />
                 </div>
               )}
@@ -1031,7 +1052,7 @@ export default function NewWorkoutPage() {
                     placeholder="Dropset Weight"
                     value={set.dropsetWeight || ''}
                     onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
-                    className="w-full"
+                    className={cn("w-full", numberInputClass)}
                   />
                 </div>
                 <div className="flex-1 min-w-[120px]">
@@ -1041,7 +1062,7 @@ export default function NewWorkoutPage() {
                     placeholder="Dropset Reps"
                     value={set.dropsetReps || ''}
                     onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
-                    className="w-full"
+                    className={cn("w-full", numberInputClass)}
                   />
                 </div>
               </div>
@@ -1153,33 +1174,33 @@ export default function NewWorkoutPage() {
         </motion.div>
       )}
 
-      <Dialog open={showContinueModal} onOpenChange={setShowContinueModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Continue Previous Workout?</DialogTitle>
-            <DialogDescription>
-              You have a saved workout in progress. Would you like to continue or start a new one?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="sm:justify-start">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleStartNewWorkout}
-              className="w-full sm:w-auto"
-            >
-              Start New Workout
-            </Button>
-            <Button
-              type="button"
-              onClick={handleContinueWorkout}
-              className="w-full sm:w-auto bg-green-500 hover:bg-green-600"
-            >
-              Continue Workout
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+<Dialog open={showContinueModal} onOpenChange={setShowContinueModal}>
+  <DialogContent className="bg-white text-black border border-gray-300 p-6 rounded-lg shadow-lg">
+    <DialogHeader>
+      <DialogTitle className="text-2xl font-bold text-gray-900">Continue Previous Workout?</DialogTitle>
+      <DialogDescription className="text-gray-600 mt-2">
+        You have a saved workout in progress. Would you like to continue or start a new one?
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter className="mt-6 flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleStartNewWorkout}
+        className="w-full sm:w-auto border-gray-300 text-gray-700 hover:bg-gray-100"
+      >
+        Start New Workout
+      </Button>
+      <Button
+        type="button"
+        onClick={handleContinueWorkout}
+        className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white"
+      >
+        Continue Workout
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
     </div>
   )
 }
