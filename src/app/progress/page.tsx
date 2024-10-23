@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, Smile, Frown, Meh } from 'lucide-react'
+import { Dumbbell, Smile, Frown, Meh, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/lib/database.types'
@@ -16,11 +16,13 @@ export default function ProgressPage() {
   const [workoutDetails, setWorkoutDetails] = useState<Record<string, any>>({})
   const { session } = useContext(UserContext)
   const supabase = createClientComponentClient<Database>()
+  const [isLoading, setIsLoading] = useState(true) // Start with loading state
 
   useEffect(() => {
     const fetchWorkouts = async () => {
       if (!session?.user) return
 
+      setIsLoading(true)
       const { data: workouts, error } = await supabase
         .from('workouts')
         .select(`
@@ -94,10 +96,30 @@ export default function ProgressPage() {
       }
       console.log('Workout details:', details)
       setWorkoutDetails(details)
+      setIsLoading(false)
     };
 
     fetchWorkouts();
   }, [session?.user, supabase]);
+
+  const selectedDateString = selectedDate ? 
+    `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` 
+    : undefined
+
+  useEffect(() => {
+    const fetchWorkoutDetails = async () => {
+      if (selectedDateString && workoutDetails[selectedDateString]) {
+        setIsLoading(true)
+        // Simulate a short delay to show the loading spinner
+        await new Promise(resolve => setTimeout(resolve, 500))
+        setIsLoading(false)
+      } else {
+        setIsLoading(false) // Ensure loading is false if no workout
+      }
+    }
+
+    fetchWorkoutDetails()
+  }, [selectedDateString, workoutDetails])
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -114,9 +136,6 @@ export default function ProgressPage() {
     return emojiMap[feeling as keyof typeof emojiMap] || <Meh className="h-10 w-10 text-secondary" />
   }
 
-  const selectedDateString = selectedDate ? 
-    `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` 
-    : undefined
   const workoutDetail = selectedDateString ? workoutDetails[selectedDateString] : null
 
   if (!session?.user) {
@@ -159,7 +178,16 @@ export default function ProgressPage() {
           </motion.div>
           <div className="w-full md:w-2/3 lg:w-3/4 overflow-y-auto">
             <AnimatePresence mode="wait">
-              {workoutDetail ? (
+              {isLoading ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="h-full flex items-center justify-center"
+                >
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </motion.div>
+              ) : workoutDetail ? (
                 <motion.div
                   key={selectedDateString}
                   initial={{ opacity: 0, y: 20 }}

@@ -77,7 +77,7 @@ export default function SignInPage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-200 flex flex-col justify-center items-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-800">FitTrack</h1>
+          <h1 className="text-3xl font-bold text-blue-800">Lift Log</h1>
           <p className="text-blue-600 mt-2">Welcome back! Let&apos;s get you logged in.</p>
         </div>
 

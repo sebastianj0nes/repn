@@ -25,7 +25,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { cn } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface Set {
   weight?: number | null;
@@ -61,8 +61,6 @@ const muscleGroups: { name: string; icon: LucideIcon }[] = [
   { name: 'Core', icon: Brain },
   { name: 'Cardio', icon: Footprints },
 ]
-
-const numberInputClass = "appearance-textfield [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 
 export default function NewWorkoutPage() {
   const [step, setStep] = useState(1)
@@ -485,7 +483,7 @@ export default function NewWorkoutPage() {
                   placeholder="Weight"
                   value={set.weight || ''}
                   onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                  className={cn("w-full", numberInputClass)}
+                  className="w-full"
                 />
               </div>
               <div className="flex-1 min-w-[120px]">
@@ -497,7 +495,7 @@ export default function NewWorkoutPage() {
                   placeholder="Reps"
                   value={set.reps || ''}
                   onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                  className={cn("w-full", numberInputClass)}
+                  className="w-full"
                 />
               </div>
             </>
@@ -512,7 +510,7 @@ export default function NewWorkoutPage() {
                 placeholder="Reps"
                 value={set.reps || ''}
                 onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                className={cn("w-full", numberInputClass)}
+                className="w-full"
               />
             </div>
           )}
@@ -526,7 +524,7 @@ export default function NewWorkoutPage() {
                 placeholder="Duration (seconds)"
                 value={set.duration || ''}
                 onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
-                className={cn("w-full", numberInputClass)}
+                className="w-full"
               />
             </div>
           )}
@@ -557,6 +555,9 @@ export default function NewWorkoutPage() {
               <Label htmlFor={`dropset-weight-${index}`}>Dropset Weight</Label>
               <Input
                 id={`dropset-weight-${index}`}
+                type="number"
+                inputMode="decimal"
+                step="0.1"
                 placeholder="Dropset Weight"
                 value={set.dropsetWeight || ''}
                 onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
@@ -567,6 +568,8 @@ export default function NewWorkoutPage() {
               <Label htmlFor={`dropset-reps-${index}`}>Dropset Reps</Label>
               <Input
                 id={`dropset-reps-${index}`}
+                type="number"
+                inputMode="numeric"
                 placeholder="Dropset Reps"
                 value={set.dropsetReps || ''}
                 onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
@@ -648,21 +651,23 @@ export default function NewWorkoutPage() {
                     <SelectValue placeholder="Select an exercise" />
                   </SelectTrigger>
                   <SelectContent>
-                    {workout?.muscleGroups.map((group, index) => (
-                      <div key={group}>
-                        {index > 0 && <Separator className="my-2" />}
-                        <SelectItem value={`group-${group}`} disabled className="font-semibold text-primary">
-                          {group}
-                        </SelectItem>
-                        {availableExercises
-                          .filter(exercise => exercise.muscle_group === group)
-                          .map(exercise => (
-                            <SelectItem key={exercise.id} value={exercise.id} className="pl-4">
-                              {exercise.name}
-                            </SelectItem>
-                          ))}
-                      </div>
-                    ))}
+                    <ScrollArea className="h-[300px]">
+                      {workout?.muscleGroups.map((group, index) => (
+                        <div key={group}>
+                          {index > 0 && <Separator className="my-2" />}
+                          <SelectItem value={`group-${group}`} disabled className="font-semibold text-primary">
+                            {group}
+                          </SelectItem>
+                          {availableExercises
+                            .filter(exercise => exercise.muscle_group === group)
+                            .map(exercise => (
+                              <SelectItem key={exercise.id} value={exercise.id} className="pl-4">
+                                {exercise.name}
+                              </SelectItem>
+                            ))}
+                        </div>
+                      ))}
+                    </ScrollArea>
                   </SelectContent>
                 </Select>
                 
@@ -977,7 +982,7 @@ export default function NewWorkoutPage() {
                       placeholder="Weight"
                       value={set.weight || ''}
                       onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                      className={cn("w-full", numberInputClass)}
+                      className="w-full"
                     />
                   </div>
                   <div className="flex-1 min-w-[120px]">
@@ -989,7 +994,7 @@ export default function NewWorkoutPage() {
                       placeholder="Reps"
                       value={set.reps || ''}
                       onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                      className={cn("w-full", numberInputClass)}
+                      className="w-full"
                     />
                   </div>
                 </>
@@ -1004,7 +1009,7 @@ export default function NewWorkoutPage() {
                     placeholder="Reps"
                     value={set.reps || ''}
                     onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                    className={cn("w-full", numberInputClass)}
+                    className="w-full"
                   />
                 </div>
               )}
@@ -1018,7 +1023,7 @@ export default function NewWorkoutPage() {
                     placeholder="Duration (seconds)"
                     value={set.duration || ''}
                     onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
-                    className={cn("w-full", numberInputClass)}
+                    className="w-full"
                   />
                 </div>
               )}
@@ -1049,20 +1054,25 @@ export default function NewWorkoutPage() {
                   <Label htmlFor={`edit-dropset-weight-${index}`}>Dropset Weight</Label>
                   <Input
                     id={`edit-dropset-weight-${index}`}
+                    type="number"
+                    inputMode="decimal"
+                    step="0.1"
                     placeholder="Dropset Weight"
                     value={set.dropsetWeight || ''}
                     onChange={(e) => handleSetChange(index, 'dropsetWeight', e.target.value)}
-                    className={cn("w-full", numberInputClass)}
+                    className="w-full"
                   />
                 </div>
                 <div className="flex-1 min-w-[120px]">
                   <Label htmlFor={`edit-dropset-reps-${index}`}>Dropset Reps</Label>
                   <Input
                     id={`edit-dropset-reps-${index}`}
+                    type="number"
+                    inputMode="numeric"
                     placeholder="Dropset Reps"
                     value={set.dropsetReps || ''}
                     onChange={(e) => handleSetChange(index, 'dropsetReps', e.target.value)}
-                    className={cn("w-full", numberInputClass)}
+                    className="w-full"
                   />
                 </div>
               </div>
