@@ -82,6 +82,7 @@ export default function NewWorkoutPage() {
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string>('');
   const [setErrors, setSetErrors] = useState<{ [key: number]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const totalSteps = 5 // Total number of steps in the workout process
 
@@ -317,6 +318,8 @@ export default function NewWorkoutPage() {
       return
     }
 
+    setIsSubmitting(true)
+
     const supabase = createClientComponentClient<Database>()
 
     try {
@@ -390,6 +393,8 @@ export default function NewWorkoutPage() {
     } catch (error) {
       console.error('Error submitting workout:', error)
       alert('Failed to log workout. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -909,8 +914,27 @@ export default function NewWorkoutPage() {
                   </>
                 )}
               </div>
-              <Button onClick={finishWorkout} className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white">
-                <Dumbbell className="mr-2 h-4 w-4" /> Finish Workout
+              <Button 
+                onClick={finishWorkout} 
+                className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="mr-2"
+                    >
+                      <Dumbbell className="h-4 w-4" />
+                    </motion.div>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Dumbbell className="mr-2 h-4 w-4" /> Finish Workout
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
