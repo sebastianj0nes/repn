@@ -63,7 +63,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 h-[calc(100vh-4rem)] flex flex-col justify-center items-center">
+    <div className="container mx-auto px-4 py-8 mb-16">
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -158,7 +158,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
-        className="flex flex-col items-center space-y-4 mt-8"
+        className="flex justify-center items-center space-x-4"
       >
         <Button 
           variant="outline" 
@@ -168,15 +168,23 @@ export default function Dashboard() {
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out
         </Button>
-        <div className="flex space-x-4 text-sm text-muted-foreground">
-          <Link href="/privacy-policy" className="hover:underline">
-            Privacy Policy
-          </Link>
-          <Link href="/terms" className="hover:underline">
-            Terms & Conditions
-          </Link>
-        </div>
+       
       </motion.div>
+
+      <div className="text-center py-10 ">
+      <Link 
+          href="/privacy-policy" 
+          className="text-xs p-4 text-muted-foreground hover:underline"
+        >
+          Privacy Policy
+        </Link>
+        <Link 
+          href="/terms" 
+          className="text-xs text-muted-foreground hover:underline"
+        >
+          Terms Of Use
+        </Link>
+      </div>
 
       {/* Space for BottomNav component */}
       <div className="h-16"></div>
