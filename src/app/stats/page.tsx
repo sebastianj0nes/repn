@@ -27,9 +27,7 @@ export default function StatsPage() {
   const [selectedExercise, setSelectedExercise] = useState<string>('')
   const [exerciseData, setExerciseData] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [page, setPage] = useState(1)
-  const observer = useRef<IntersectionObserver | null>(null)
-  const lastElementRef = useRef<HTMLTableRowElement | null>(null)
+  const [exercises, setExercises] = useState<{ id: string, name: string, muscle_group: string }[]>([])
 
   const supabase = createClientComponentClient<Database>()
 
@@ -62,32 +60,57 @@ export default function StatsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      const { data: completedExercises, error: completedExercisesError } = await supabase
+        .from('exercises')
+        .select(`
+          name,
+          workouts!inner(user_id)
+        `)
+        .eq('workouts.user_id', user.id)
+        .not('max_weight', 'is', null) // Check for non-null max_weight
+
+      if (completedExercisesError) {
+        console.error('Error fetching completed exercises:', completedExercisesError)
+        return
+      }
+
+      // Use JavaScript to group exercises by name
+      const groupedExercises = completedExercises.reduce((acc: { name: string }[], exercise) => {
+        if (!acc.some(e => e.name === exercise.name)) {
+          acc.push(exercise)
+        }
+        return acc
+      }, [])
+
       const { data: exercisesData, error: exercisesError } = await supabase
         .from('exercises_library')
-        .select('name')
+        .select('id, name, muscle_group, exercise_type')
+        .eq('exercise_type', 'weights')
 
       if (exercisesError) {
         console.error('Error fetching exercises:', exercisesError)
         return
       }
 
-      if (exercisesData.length > 0) {
-        setSelectedExercise(exercisesData[0].name)
-      }
+      // Filter out exercises with muscle group "Core" and only include completed exercises
+      const filteredExercises = exercisesData.filter(exercise => 
+        exercise.muscle_group.toLowerCase() !== 'core' &&
+        groupedExercises.some(completed => completed.name === exercise.name)
+      )
+
+      setExercises(filteredExercises)
     }
 
     fetchExercises()
   }, [supabase])
 
   useEffect(() => {
-    setExerciseData([])
-    setPage(1)
-    loadMoreData()
+    if (selectedExercise) {
+      fetchExerciseData()
+    }
   }, [selectedExercise])
 
-  const loadMoreData = async () => {
-    if (!selectedExercise) return
-
+  const fetchExerciseData = async () => {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -95,18 +118,11 @@ export default function StatsPage() {
     const { data: exerciseData, error: exerciseError } = await supabase
       .from('exercises')
       .select(`
-        id,
-        workout_id,
-        name,
         max_weight,
-        total_volume,
-        total_sets,
-        workouts (date),
-        exercise_sets (set_number, weight, reps)
+        workouts (date)
       `)
       .eq('name', selectedExercise)
-      .order('workouts.date', { ascending: false })
-      .range((page - 1) * 10, page * 10 - 1)
+      .eq('workouts.user_id', user.id)
 
     if (exerciseError) {
       console.error('Error fetching exercise data:', exerciseError)
@@ -114,15 +130,14 @@ export default function StatsPage() {
       return
     }
 
-    const formattedData = exerciseData.map((exercise: any) => ({
-      date: exercise.workouts.date,
-      weight: exercise.max_weight,
-      reps: Math.floor(exercise.total_volume / exercise.max_weight),
-      sets: exercise.exercise_sets
-    }))
+    const formattedData = exerciseData
+      .map((exercise: any) => ({
+        date: exercise.workouts.date,
+        weight: exercise.max_weight
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Sort by date ascending
 
-    setExerciseData(prev => [...prev, ...formattedData])
-    setPage(prev => prev + 1)
+    setExerciseData(formattedData)
     setLoading(false)
   }
 
@@ -288,35 +303,46 @@ export default function StatsPage() {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="w-full max-w-[100vw]">
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <h2 className="text-xl font-semibold">Exercise Progress Tracker</h2>
-                      <button
-                        onClick={() => setIsExerciseSectionOpen(!isExerciseSectionOpen)}
-                        className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        {isExerciseSectionOpen ? (
-                          <ChevronUpIcon className="w-6 h-6" />
-                        ) : (
-                          <ChevronDownIcon className="w-6 h-6" />
-                        )}
-                      </button>
-                    </div>
+                <Select onValueChange={(value) => setSelectedExercise(value)} defaultValue="">
+                  <SelectTrigger className="w-full mb-4">
+                    <SelectValue placeholder="Select exercise" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    {Object.entries(groupExercisesByMuscle(exercises)).map(([muscleGroup, exercises]) => (
+                      <div key={muscleGroup}>
+                        <div className="font-bold">{muscleGroup}</div>
+                        {exercises.map((exercise) => (
+                          <SelectItem key={exercise.id} value={exercise.name}>
+                            {exercise.name}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={exerciseData}>
-                        <Line type="monotone" dataKey="weight" stroke="#8884d8" />
-                        <Line type="monotone" dataKey="reps" stroke="#82ca9d" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <Tooltip />
-                        <Legend />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
+                {loading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <DumbbellIcon className="animate-spin w-12 h-12 text-primary" />
+                  </div>
+                ) : (
+                  selectedExercise && (
+                    <Card className="w-full max-w-[100vw]">
+                      <CardContent className="p-6">
+                        <ResponsiveContainer width="100%" height={300}>
+                          <LineChart data={exerciseData}>
+                            <Line type="monotone" dataKey="weight" stroke="#8884d8" />
+                            <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString()} />
+                            <YAxis />
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Legend />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  )
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -325,4 +351,27 @@ export default function StatsPage() {
       <BottomNav />
     </div>
   )
+}
+
+const groupExercisesByMuscle = (exercises: { id: string, name: string, muscle_group: string }[]) => {
+  return exercises.reduce((acc, exercise) => {
+    if (!acc[exercise.muscle_group]) {
+      acc[exercise.muscle_group] = []
+    }
+    acc[exercise.muscle_group].push(exercise)
+    return acc
+  }, {} as Record<string, { id: string, name: string, muscle_group: string }[]>)
+}
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-2 shadow-md rounded">
+        <p className="label">{`Date: ${new Date(payload[0].payload.date).toLocaleDateString()}`}</p>
+        <p className="intro">{`Weight: ${payload[0].value} kg`}</p>
+      </div>
+    )
+  }
+
+  return null
 }

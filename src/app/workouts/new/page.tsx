@@ -349,30 +349,27 @@ export default function NewWorkoutPage() {
       const setOfTheDay = workout?.exercises.flatMap(ex => ex.sets).find(set => set.isSetOfTheDay)
       const sotd = setOfTheDay ? `${setOfTheDay.weight}x${setOfTheDay.reps} ${workout?.exercises.find(ex => ex.sets.includes(setOfTheDay))?.name}` : ''
 
-      // Start a transaction
-      const { data, error } = await supabase.rpc('create_full_workout', {
-        p_user_id: session.user.id,
-        p_date: new Date().toISOString().split('T')[0], // Get only the date part
-        p_muscle_group: workout?.muscleGroups.join(', '),
-        p_feeling: workout?.feeling,
-        p_sotd: sotd,
-        p_image_url: image_url,
-        p_exercises: workout?.exercises.map(exercise => ({
-          exercise_id: exercise.id,
+      // Call the stored procedure
+      const { error: transactionError } = await supabase.rpc('create_full_workout', {
+        user_id: session.user.id,
+        workout_date: new Date().toISOString().split('T')[0],
+        muscle_group: workout?.muscleGroups.join(', '),
+        feeling: workout?.feeling,
+        sotd,
+        image_url,
+        exercises: workout?.exercises.map(exercise => ({
+          exercise_id: exercise.id, // Ensure this is the correct ID from exercises_library
           name: exercise.name,
           sets: exercise.sets.map((set, index) => ({
             set_number: index + 1,
-            weight: set.weight ? parseFloat(set.weight.toString()) : null,
-            reps: set.reps ? parseInt(set.reps.toString()) : null,
-            duration: set.duration ? parseInt(set.duration.toString()) : null,
-            is_dropset: set.isDropSet,
-            dropset_weight: set.dropsetWeight ? parseFloat(set.dropsetWeight.toString()) : null,
-            dropset_reps: set.dropsetReps ? parseInt(set.dropsetReps.toString()) : null
+            weight: set.weight,
+            reps: set.reps,
+            is_dropset: set.isDropSet
           }))
         }))
       })
 
-      if (error) throw error
+      if (transactionError) throw transactionError
 
       // Set progress to 100% on successful submission
       setProgress(100)
