@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import AuthWrapper from '@/components/AuthWrapper'
+import { Analytics } from "@vercel/analytics/react"
 
 import '@/app/globals.css'
 import BottomNav from '@/components/BottomNav'
@@ -28,6 +29,7 @@ export default function RootLayout({
             <main>{children}</main>
           </AuthWrapper>
         </ThemeProvider>
+        <Analytics/>
       </body>
     </html>
   )
