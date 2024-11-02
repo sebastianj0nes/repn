@@ -131,9 +131,7 @@ export default function SignInPage() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">
-                Or continue with
-              </span>
+              
             </div>
           </div>
 
@@ -145,12 +143,7 @@ export default function SignInPage() {
           </p>
         </div>
 
-        <div className="mt-8 text-center">
-
-          <p className="mt-4 text-sm text-blue-800">
-            &quot;Your body can stand almost anything. It&apos;s your mind that you have to convince.&quot;
-          </p>
-        </div>
+        
       </div>
     </div>
   )

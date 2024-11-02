@@ -69,7 +69,7 @@ export default function SignUpPage() {
               <Label htmlFor="name">Name</Label>
               <Input 
                 id="name" 
-                placeholder="John Doe" 
+                placeholder="Your First Name" 
                 required 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -79,7 +79,7 @@ export default function SignUpPage() {
               <Label htmlFor="email">Email</Label>
               <Input 
                 id="email" 
-                placeholder="john@example.com" 
+                placeholder="Email" 
                 type="email" 
                 required 
                 value={email}
@@ -109,9 +109,7 @@ export default function SignUpPage() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">
-                Or continue with
-              </span>
+              
             </div>
           </div>
 
@@ -123,12 +121,7 @@ export default function SignUpPage() {
           </p>
         </div>
 
-        <div className="mt-8 text-center">
-
-          <p className="mt-4 text-sm text-blue-800">
-            &quot;The difference between try and triumph is just a little umph!&quot;
-          </p>
-        </div>
+        
       </div>
     </div>
   );

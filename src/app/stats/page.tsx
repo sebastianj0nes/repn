@@ -11,7 +11,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import BottomNav from '@/components/BottomNav'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/lib/database.types'
-import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { Line, LineChart, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 type Workout = Database['public']['tables']['workouts']['Row']
 type Exercise = Database['public']['tables']['exercises']['Row']
@@ -19,15 +19,17 @@ type ExerciseSet = Database['public']['tables']['exercise_sets']['Row']
 
 export default function StatsPage() {
   const [totalWorkouts, setTotalWorkouts] = useState(0)
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>("all")
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [longestStreak, setLongestStreak] = useState(0)
-  const [isWorkoutSectionOpen, setIsWorkoutSectionOpen] = useState(true)
-  const [isExerciseSectionOpen, setIsExerciseSectionOpen] = useState(true)
   const [selectedExercise, setSelectedExercise] = useState<string>('')
   const [exerciseData, setExerciseData] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [exercises, setExercises] = useState<{ id: string, name: string, muscle_group: string }[]>([])
+  const [holyTrinityStats, setHolyTrinityStats] = useState({
+    bench: 0,
+    squat: 0,
+    deadlift: 0
+  })
 
   const supabase = createClientComponentClient<Database>()
 
@@ -141,14 +143,59 @@ export default function StatsPage() {
     setLoading(false)
   }
 
-  const muscleGroups = ['Chest', 'Back', 'Legs', 'Shoulder', 'Core', 'Tricep', 'Bicep']
+  useEffect(() => {
+    const calculateHolyTrinityStats = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-  const filteredWorkouts = selectedMuscleGroup === "all"
-    ? workouts
-    : workouts.filter(w => {
-        const workoutMuscleGroups = w.muscle_group.split(',').map(group => group.trim().toLowerCase())
-        return workoutMuscleGroups.includes(selectedMuscleGroup!.toLowerCase())
+      // Fetch all exercises for bench press, squat, and deadlift
+      const { data: holyTrinityData, error } = await supabase
+        .from('exercises')
+        .select(`
+          name,
+          exercise_sets (
+            reps
+          ),
+          workouts!inner(user_id)
+        `)
+        .in('name', ['Bench Press - Barbell', 'Squats', 'Deadlifts'])
+        .eq('workouts.user_id', user.id)
+
+      if (error) {
+        console.error('Error fetching holy trinity stats:', error)
+        return
+      }
+
+      // Calculate total reps for each exercise
+      const stats = {
+        bench: 0,
+        squat: 0,
+        deadlift: 0
+      }
+
+      holyTrinityData?.forEach(exercise => {
+        const totalReps = exercise.exercise_sets?.reduce((sum, set) => sum + (set.reps || 0), 0) || 0
+        
+        switch (exercise.name) {
+          case 'Bench Press - Barbell':
+            stats.bench += totalReps
+            break
+          case 'Squats':
+            stats.squat += totalReps
+            break
+          case 'Deadlifts':
+            stats.deadlift += totalReps
+            break
+        }
       })
+
+      setHolyTrinityStats(stats)
+    }
+
+    calculateHolyTrinityStats()
+  }, [supabase])
+
+  const muscleGroups = ['Chest', 'Back', 'Legs', 'Shoulder', 'Core', 'Tricep', 'Bicep']
 
   const calculateLongestStreak = (workouts: Workout[]): number => {
     if (workouts.length === 0) return 0;
@@ -214,138 +261,129 @@ export default function StatsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xl font-semibold">Workouts by Muscle Group</h2>
-            <button
-              onClick={() => setIsWorkoutSectionOpen(!isWorkoutSectionOpen)}
-              className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            >
-              {isWorkoutSectionOpen ? (
-                <ChevronUpIcon className="w-6 h-6" />
-              ) : (
-                <ChevronDownIcon className="w-6 h-6" />
-              )}
-            </button>
+          <h2 className="text-2xl font-bold text-center mb-8 mt-12 text-primary pb-4 pt-3">
+            Exercise Progress Tracker
+          </h2>
+
+          <div className="flex justify-center">
+            <div className="w-64">
+              <Select onValueChange={(value) => setSelectedExercise(value)} defaultValue="">
+                <SelectTrigger className="mb-4">
+                  <SelectValue placeholder="Select exercise" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  {Object.entries(groupExercisesByMuscle(exercises)).map(([muscleGroup, exercises]) => (
+                    <div key={muscleGroup} className="mb-4">
+                      <div className="font-bold pl-4 mb-2">{muscleGroup}</div>
+                      {exercises.map((exercise) => (
+                        <SelectItem
+                          key={exercise.id}
+                          value={exercise.name}
+                          className="hover:bg-gray-200"
+                        >
+                          {exercise.name}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <AnimatePresence>
-            {isWorkoutSectionOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Select onValueChange={(value) => setSelectedMuscleGroup(value)} defaultValue="all">
-                  <SelectTrigger className="w-full mb-4">
-                    <SelectValue placeholder="Select muscle group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All muscle groups</SelectItem>
-                    {muscleGroups.map((group) => (
-                      <SelectItem key={group} value={group}>{group}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <ScrollArea className="h-[calc(100vh-300px)]">
-                  <div className="grid grid-cols-2 gap-4">
-                    {filteredWorkouts.map((workout) => (
-                      <motion.div
-                        key={workout.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <Card className="h-32 flex flex-col items-center justify-center text-center">
-                          <CardContent className="p-2">
-                            <p className="text-xs text-muted-foreground mb-1">{workout.muscle_group}</p>
-                            <p className="text-lg font-bold mb-1">
-                              {new Date(workout.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <DumbbellIcon className="animate-spin w-12 h-12 text-primary" />
+            </div>
+          ) : (
+            selectedExercise && (
+              <Card className="w-full max-w-[100vw] mb-8">
+                <CardContent className="p-6">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={exerciseData}>
+                      <Line 
+                        type="monotone" 
+                        dataKey="weight" 
+                        stroke="#8884d8" 
+                      />
+                      <XAxis 
+                        dataKey="date" 
+                        tickFormatter={(date) => new Date(date).toLocaleDateString()} 
+                      />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )
+          )}
+          <div className="w-full border-b-2 border-gray-200 mb-8"></div>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="mt-16"
         >
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xl font-semibold">Exercise Progress Tracker</h2>
-            <button
-              onClick={() => setIsExerciseSectionOpen(!isExerciseSectionOpen)}
-              className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          <h2 className="text-2xl font-bold text-center mb-8 mt-12 text-primary pb-4 pt-3">
+            The Holy Trinity
+          </h2>
+
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
-              {isExerciseSectionOpen ? (
-                <ChevronUpIcon className="w-6 h-6" />
-              ) : (
-                <ChevronDownIcon className="w-6 h-6" />
-              )}
-            </button>
-          </div>
-
-          <AnimatePresence>
-            {isExerciseSectionOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Select onValueChange={(value) => setSelectedExercise(value)} defaultValue="">
-                  <SelectTrigger className="w-full mb-4">
-                    <SelectValue placeholder="Select exercise" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto">
-                    {Object.entries(groupExercisesByMuscle(exercises)).map(([muscleGroup, exercises]) => (
-                      <div key={muscleGroup}>
-                        <div className="font-bold">{muscleGroup}</div>
-                        {exercises.map((exercise) => (
-                          <SelectItem key={exercise.id} value={exercise.name}>
-                            {exercise.name}
-                          </SelectItem>
-                        ))}
-                      </div>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {loading ? (
-                  <div className="flex justify-center items-center h-64">
-                    <DumbbellIcon className="animate-spin w-12 h-12 text-primary" />
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {holyTrinityStats.bench}
                   </div>
-                ) : (
-                  selectedExercise && (
-                    <Card className="w-full max-w-[100vw]">
-                      <CardContent className="p-6">
-                        <ResponsiveContainer width="100%" height={300}>
-                          <LineChart data={exerciseData}>
-                            <Line type="monotone" dataKey="weight" stroke="#8884d8" />
-                            <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString()} />
-                            <YAxis />
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  )
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <p className="text-sm text-muted-foreground">
+                    Bench Press Reps
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {holyTrinityStats.squat}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Squat Reps
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {holyTrinityStats.deadlift}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Deadlift Reps
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+          <div className="w-full border-b-2 border-gray-200 mb-8"></div>
         </motion.div>
       </main>
       <BottomNav />
