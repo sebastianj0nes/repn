@@ -1224,11 +1224,20 @@ export default function NewWorkoutPage() {
   };
 
   const fetchExercises = async (muscleGroup: string): Promise<Exercise[]> => {
-    const response = await fetch(`/api/exercises?muscleGroup=${encodeURIComponent(muscleGroup)}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch exercises');
+    try {
+      const response = await fetch(`/api/exercises?muscleGroup=${encodeURIComponent(muscleGroup)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch exercises:', error);
+      return [];
     }
-    return response.json();
   };
 
   useEffect(() => {
