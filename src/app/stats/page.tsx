@@ -62,6 +62,7 @@ export default function StatsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      // First, get all completed exercises for this user
       const { data: completedExercises, error: completedExercisesError } = await supabase
         .from('exercises')
         .select(`
@@ -69,21 +70,13 @@ export default function StatsPage() {
           workouts!inner(user_id)
         `)
         .eq('workouts.user_id', user.id)
-        .not('max_weight', 'is', null) // Check for non-null max_weight
 
       if (completedExercisesError) {
         console.error('Error fetching completed exercises:', completedExercisesError)
         return
       }
 
-      // Use JavaScript to group exercises by name
-      const groupedExercises = completedExercises.reduce((acc: { name: string }[], exercise) => {
-        if (!acc.some(e => e.name === exercise.name)) {
-          acc.push(exercise)
-        }
-        return acc
-      }, [])
-
+      // Get all exercises from the library
       const { data: exercisesData, error: exercisesError } = await supabase
         .from('exercises_library')
         .select('id, name, muscle_group, exercise_type')
@@ -94,11 +87,16 @@ export default function StatsPage() {
         return
       }
 
-      // Filter out exercises with muscle group "Core" and only include completed exercises
+      // Filter exercises to only include those that have been completed by the user
       const filteredExercises = exercisesData.filter(exercise => 
         exercise.muscle_group.toLowerCase() !== 'core' &&
-        groupedExercises.some(completed => completed.name === exercise.name)
+        completedExercises.some(completed => 
+          completed.name.toLowerCase() === exercise.name.toLowerCase()
+        )
       )
+
+      console.log('Completed exercises:', completedExercises) // Debug log
+      console.log('Filtered exercises:', filteredExercises) // Debug log
 
       setExercises(filteredExercises)
     }

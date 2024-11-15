@@ -3,18 +3,43 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
-  
   try {
-    const { data, error } = await supabase
-      .from('exercises_library')
-      .select('*');
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
-    if (error) throw error;
+    // Get the muscle group from query params if it exists
+    const { searchParams } = new URL(request.url);
+    const muscleGroup = searchParams.get('muscleGroup');
+    const muscleGroups = searchParams.get('muscleGroups')?.split(',');
+
+    let query = supabase
+      .from('exercises_library')
+      .select('*')
+      .order('name');
+
+    // Apply filters based on parameters
+    if (muscleGroup) {
+      query = query.eq('muscle_group', muscleGroup);
+    } else if (muscleGroups && muscleGroups.length > 0) {
+      query = query.in('muscle_group', muscleGroups);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Database error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
     return NextResponse.json(data);
+
   } catch (error) {
-    console.error('Error fetching exercises:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Error in exercises route:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' }, 
+      { status: 500 }
+    );
   }
 }
+
+export const dynamic = 'force-dynamic';

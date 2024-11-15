@@ -349,7 +349,36 @@ export default function NewWorkoutPage() {
       const setOfTheDay = workout?.exercises.flatMap(ex => ex.sets).find(set => set.isSetOfTheDay)
       const sotd = setOfTheDay ? `${setOfTheDay.weight}x${setOfTheDay.reps} ${workout?.exercises.find(ex => ex.sets.includes(setOfTheDay))?.name}` : ''
 
-      // Call the stored procedure
+      // Transform exercises data to properly handle dropsets
+      const transformedExercises = workout?.exercises.map(exercise => ({
+        exercise_id: exercise.id,
+        name: exercise.name,
+        sets: exercise.sets.map((set, index) => {
+          // Base set data
+          const baseSet = {
+            set_number: index + 1,
+            weight: set.weight,
+            reps: set.reps,
+            duration: set.duration,
+            is_dropset: set.isDropSet,
+            dropset_weight: null,
+            dropset_reps: null
+          };
+
+          // If it's a dropset, add the dropset information
+          if (set.isDropSet && set.dropsetWeight && set.dropsetReps) {
+            return {
+              ...baseSet,
+              dropset_weight: parseFloat(set.dropsetWeight),
+              dropset_reps: parseInt(set.dropsetReps)
+            };
+          }
+
+          return baseSet;
+        })
+      }));
+
+      // Call the stored procedure with transformed data
       const { error: transactionError } = await supabase.rpc('create_full_workout', {
         user_id: session.user.id,
         workout_date: new Date().toISOString().split('T')[0],
@@ -357,16 +386,7 @@ export default function NewWorkoutPage() {
         feeling: workout?.feeling,
         sotd,
         image_url,
-        exercises: workout?.exercises.map(exercise => ({
-          exercise_id: exercise.id, // Ensure this is the correct ID from exercises_library
-          name: exercise.name,
-          sets: exercise.sets.map((set, index) => ({
-            set_number: index + 1,
-            weight: set.weight,
-            reps: set.reps,
-            is_dropset: set.isDropSet
-          }))
-        }))
+        exercises: transformedExercises
       })
 
       if (transactionError) throw transactionError
@@ -657,13 +677,21 @@ export default function NewWorkoutPage() {
                       {workout?.muscleGroups.map((group, index) => (
                         <div key={group}>
                           {index > 0 && <Separator className="my-2" />}
-                          <SelectItem value={`group-${group}`} disabled className="font-semibold text-primary">
+                          <SelectItem 
+                            value={`group-${group}`} 
+                            disabled 
+                            className="font-semibold text-primary"
+                          >
                             {group}
                           </SelectItem>
                           {availableExercises
                             .filter(exercise => exercise.muscle_group === group)
                             .map(exercise => (
-                              <SelectItem key={exercise.id} value={exercise.id} className="pl-4">
+                              <SelectItem 
+                                key={exercise.id} 
+                                value={exercise.id} 
+                                className="pl-4 cursor-pointer hover:bg-gray-100 data-[state=checked]:bg-gray-200 transition-colors"
+                              >
                                 {exercise.name}
                               </SelectItem>
                             ))}
@@ -971,6 +999,30 @@ export default function NewWorkoutPage() {
 
   const EditExerciseForm = ({ exercise, onSave, onCancel }: { exercise: Exercise; onSave: (exercise: Exercise) => void; onCancel: () => void }) => {
     const [editedExercise, setEditedExercise] = useState(exercise);
+    const [availableExercisesForEdit, setAvailableExercisesForEdit] = useState<Exercise[]>([]);
+
+    useEffect(() => {
+      const fetchExercisesForEdit = async () => {
+        try {
+          // Fetch exercises specifically for this muscle group
+          const response = await fetch(`/api/exercises?muscleGroup=${encodeURIComponent(exercise.muscle_group)}`);
+          if (!response.ok) throw new Error('Failed to fetch exercises');
+          
+          const exercises = await response.json();
+          
+          // Filter exercises to only include those matching the current muscle group
+          const filteredExercises = exercises.filter((ex: Exercise) => 
+            ex.muscle_group.toLowerCase() === exercise.muscle_group.toLowerCase()
+          );
+          
+          setAvailableExercisesForEdit(filteredExercises);
+        } catch (error) {
+          console.error('Error fetching exercises:', error);
+        }
+      };
+
+      fetchExercisesForEdit();
+    }, [exercise.muscle_group]);
 
     const handleSetChange = (index: number, field: keyof Set, value: string | boolean) => {
       const newSets = [...editedExercise.sets];
@@ -982,12 +1034,44 @@ export default function NewWorkoutPage() {
       setEditedExercise({ ...editedExercise, sets: newSets });
     };
 
+    const handleExerciseChange = (exerciseId: string) => {
+      const selectedExercise = availableExercisesForEdit.find(ex => ex.id === exerciseId);
+      if (selectedExercise) {
+        setEditedExercise(prev => ({
+          ...prev,
+          id: selectedExercise.id,
+          name: selectedExercise.name,
+          exercise_type: selectedExercise.exercise_type,
+          muscle_group: selectedExercise.muscle_group // Maintain the muscle group
+        }));
+      }
+    };
+
     return (
       <div className="space-y-4">
-        <Input
-          value={editedExercise.name}
-          onChange={(e) => setEditedExercise({ ...editedExercise, name: e.target.value })}
-        />
+        <div className="flex items-center gap-2 mb-4">
+          <Label>Current Muscle Group:</Label>
+          <span className="font-medium">{exercise.muscle_group}</span>
+        </div>
+        
+        <Select 
+          value={editedExercise.id} 
+          onValueChange={handleExerciseChange}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={`Select ${exercise.muscle_group} Exercise`} />
+          </SelectTrigger>
+          <SelectContent>
+            <ScrollArea className="h-[200px]">
+              {availableExercisesForEdit.map(ex => (
+                <SelectItem key={ex.id} value={ex.id}>
+                  {ex.name}
+                </SelectItem>
+              ))}
+            </ScrollArea>
+          </SelectContent>
+        </Select>
+
         {editedExercise.sets.map((set, index) => (
           <div key={index} className="space-y-4">
             <div className="flex flex-wrap gap-2">
