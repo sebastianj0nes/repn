@@ -10,7 +10,7 @@ import BottomNav from '@/components/BottomNav'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Lift Log - Free Gym Application & Workout Tracker',
+  title: 'Repn - Free Gym Application & Workout Tracker',
   description: 'Start tracking your fitness the right way. Our extensive web application allows users to gain key insights into their workouts and fitness habits. Try our app today! It is free!!',
   keywords: ['gym', 'fitness', 'workout tracker', 'exercise', 'free', 'free gym app', 'gym app', 'free exercise tracker', 'free workout tracker', 'exercise tracker', 'gym tracker'],
   authors: [{ name: 'Sebastian Jones' }]
