@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, Smile, Frown, Meh, Loader2 } from 'lucide-react'
+import { Dumbbell, Smile, Frown, Meh } from 'lucide-react'
 import Image from 'next/image'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/lib/database.types'
@@ -16,110 +16,96 @@ export default function ProgressPage() {
   const [workoutDetails, setWorkoutDetails] = useState<Record<string, any>>({})
   const { session } = useContext(UserContext)
   const supabase = createClientComponentClient<Database>()
-  const [isLoading, setIsLoading] = useState(true) // Start with loading state
+  const [isLoading, setIsLoading] = useState(true)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [page, setPage] = useState(1)
+  const ITEMS_PER_PAGE = 30
+  const [visibleMonth, setVisibleMonth] = useState<Date>(new Date())
 
   useEffect(() => {
     const fetchWorkouts = async () => {
       if (!session?.user) return
-
+      
+      // Clear existing workout days and set loading state
+      setWorkoutDays([])
       setIsLoading(true)
-      const { data: workouts, error } = await supabase
-        .from('workouts')
-        .select(`
-          id,
-          date,
-          muscle_group,
-          feeling,
-          sotd,
-          image_url,
-          exercises (
-            id,
-            name,
-            exercise_sets (
-              set_number,
-              weight,
-              reps,
-              duration,
-              is_dropset,
-              dropset_weight,
-              dropset_reps
+
+      try {
+        const startOfMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1)
+        const endOfMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0)
+
+        const { data, error } = await supabase
+          .from('workouts')
+          .select(`
+            *,
+            exercises (
+              *,
+              exercise_sets (*)
             )
-          )
-        `)
-        .eq('user_id', session.user.id)
-        .order('date', { ascending: false })
+          `)
+          .eq('user_id', session.user.id)
+          .gte('date', startOfMonth.toISOString())
+          .lte('date', endOfMonth.toISOString())
+          .order('date', { ascending: false })
 
-      if (error) {
-        console.error('Error fetching workouts:', error)
-        return
-      }
+        if (error) throw error
 
-      const days = workouts.map(workout => workout.date.split('T')[0])
-      setWorkoutDays(days)
+        // Only update workout days after successful data fetch
+        const days = data.map(workout => workout.date.split('T')[0])
+        setWorkoutDays(days)
 
-      const details: Record<string, any> = {}
-      for (const workout of workouts) {
-        const dateKey = workout.date.split('T')[0]
-        let imageUrl = null
+        const details: Record<string, any> = {}
+        for (const workout of data) {
+          const dateKey = workout.date.split('T')[0]
+          let imageUrl = null
 
-        if (workout.image_url) {
-          try {
-            const { data, error } = await supabase
-              .storage
-              .from('users-workout-img')
-              .createSignedUrl(workout.image_url, 60 * 60 * 24 * 7) // URL valid for 7 days
+          if (workout.image_url) {
+            try {
+              const { data, error } = await supabase
+                .storage
+                .from('users-workout-img')
+                .createSignedUrl(workout.image_url, 60 * 60 * 24 * 7) // URL valid for 7 days
 
-            if (error) {
+              if (error) {
+                console.error('Error creating signed URL:', error)
+              } else if (data) {
+                imageUrl = data.signedUrl
+              }
+            } catch (error) {
               console.error('Error creating signed URL:', error)
-            } else if (data) {
-              imageUrl = data.signedUrl
             }
-          } catch (error) {
-            console.error('Error creating signed URL:', error)
+          }
+
+          details[dateKey] = {
+            muscleGroup: workout.muscle_group,
+            feeling: workout.feeling,
+            sotd: workout.sotd,
+            exercises: workout.exercises.map((exercise: any) => ({
+              name: exercise.name,
+              sets: Array.isArray(exercise.exercise_sets) 
+                ? exercise.exercise_sets 
+                : (typeof exercise.exercise_sets === 'string' 
+                  ? JSON.parse(exercise.exercise_sets) 
+                  : [])
+            })),
+            image: imageUrl
           }
         }
-
-        details[dateKey] = {
-          muscleGroup: workout.muscle_group,
-          feeling: workout.feeling,
-          sotd: workout.sotd,
-          exercises: workout.exercises.map((exercise: any) => ({
-            name: exercise.name,
-            sets: Array.isArray(exercise.exercise_sets) 
-              ? exercise.exercise_sets 
-              : (typeof exercise.exercise_sets === 'string' 
-                ? JSON.parse(exercise.exercise_sets) 
-                : [])
-          })),
-          image: imageUrl
+        console.log('Workout details:', details)
+        setWorkoutDetails(details)
+        if (days.length > 0 && isInitialLoad) {
+          setSelectedDate(new Date(days[0]))
+          setIsInitialLoad(false)
         }
-      }
-      console.log('Workout details:', details)
-      setWorkoutDetails(details)
-      setIsLoading(false)
-    };
-
-    fetchWorkouts();
-  }, [session?.user, supabase]);
-
-  const selectedDateString = selectedDate ? 
-    `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` 
-    : undefined
-
-  useEffect(() => {
-    const fetchWorkoutDetails = async () => {
-      if (selectedDateString && workoutDetails[selectedDateString]) {
-        setIsLoading(true)
-        // Simulate a short delay to show the loading spinner
-        await new Promise(resolve => setTimeout(resolve, 500))
+      } catch (error) {
+        console.error('Error fetching workouts:', error)
+      } finally {
         setIsLoading(false)
-      } else {
-        setIsLoading(false) // Ensure loading is false if no workout
       }
     }
 
-    fetchWorkoutDetails()
-  }, [selectedDateString, workoutDetails])
+    fetchWorkouts()
+  }, [session?.user, supabase, visibleMonth])
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -136,7 +122,7 @@ export default function ProgressPage() {
     return emojiMap[feeling as keyof typeof emojiMap] || <Meh className="h-10 w-10 text-secondary" />
   }
 
-  const workoutDetail = selectedDateString ? workoutDetails[selectedDateString] : null
+  const workoutDetail = selectedDate ? workoutDetails[selectedDate.toISOString().split('T')[0]] : null
 
   if (!session?.user) {
     return (
@@ -163,6 +149,7 @@ export default function ProgressPage() {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
+                  onMonthChange={setVisibleMonth}
                   className="w-full"
                   modifiers={{ workout: workoutDays.map(day => new Date(day)) }}
                   modifiersStyles={{
@@ -180,16 +167,20 @@ export default function ProgressPage() {
             <AnimatePresence mode="wait">
               {isLoading ? (
                 <motion.div
+                  key="loader"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="h-full flex items-center justify-center"
                 >
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <div className="flex flex-col items-center space-y-4">
+                    <Dumbbell className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Loading your workout data...</p>
+                  </div>
                 </motion.div>
               ) : workoutDetail ? (
                 <motion.div
-                  key={selectedDateString}
+                  key={selectedDate?.toISOString().split('T')[0] || 'no-date'}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -285,12 +276,13 @@ export default function ProgressPage() {
                 </motion.div>
               ) : (
                 <motion.div
+                  key="no-workout"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="h-full flex items-center justify-center"
                 >
-                  <p className="text-lg text-muted-foreground">Select a date to view workout details</p>
+                  <p className="text-lg text-muted-foreground">No workout found for this date</p>
                 </motion.div>
               )}
             </AnimatePresence>

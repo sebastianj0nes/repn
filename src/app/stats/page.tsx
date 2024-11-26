@@ -26,9 +26,9 @@ export default function StatsPage() {
   const [loading, setLoading] = useState(false)
   const [exercises, setExercises] = useState<{ id: string, name: string, muscle_group: string }[]>([])
   const [holyTrinityStats, setHolyTrinityStats] = useState({
-    bench: 0,
-    squat: 0,
-    deadlift: 0
+    bench: { totalReps: 0, maxWeight: 0 },
+    squat: { totalReps: 0, maxWeight: 0 },
+    deadlift: { totalReps: 0, maxWeight: 0 }
   })
 
   const supabase = createClientComponentClient<Database>()
@@ -146,14 +146,12 @@ export default function StatsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Fetch all exercises for bench press, squat, and deadlift
       const { data: holyTrinityData, error } = await supabase
         .from('exercises')
         .select(`
           name,
-          exercise_sets (
-            reps
-          ),
+          max_weight,
+          exercise_sets (reps),
           workouts!inner(user_id)
         `)
         .in('name', ['Bench Press - Barbell', 'Squats', 'Deadlifts'])
@@ -164,11 +162,10 @@ export default function StatsPage() {
         return
       }
 
-      // Calculate total reps for each exercise
       const stats = {
-        bench: 0,
-        squat: 0,
-        deadlift: 0
+        bench: { totalReps: 0, maxWeight: 0 },
+        squat: { totalReps: 0, maxWeight: 0 },
+        deadlift: { totalReps: 0, maxWeight: 0 }
       }
 
       holyTrinityData?.forEach(exercise => {
@@ -176,13 +173,16 @@ export default function StatsPage() {
         
         switch (exercise.name) {
           case 'Bench Press - Barbell':
-            stats.bench += totalReps
+            stats.bench.totalReps += totalReps
+            stats.bench.maxWeight = Math.max(stats.bench.maxWeight, exercise.max_weight || 0)
             break
           case 'Squats':
-            stats.squat += totalReps
+            stats.squat.totalReps += totalReps
+            stats.squat.maxWeight = Math.max(stats.squat.maxWeight, exercise.max_weight || 0)
             break
           case 'Deadlifts':
-            stats.deadlift += totalReps
+            stats.deadlift.totalReps += totalReps
+            stats.deadlift.maxWeight = Math.max(stats.deadlift.maxWeight, exercise.max_weight || 0)
             break
         }
       })
@@ -329,57 +329,37 @@ export default function StatsPage() {
           className="mt-16"
         >
           <h2 className="text-2xl font-bold text-center mb-8 mt-12 text-primary pb-4 pt-3">
-            The Holy Trinity
+            The Big Three 
           </h2>
 
           <div className="grid grid-cols-3 gap-4 mb-8">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <div className="text-4xl font-bold text-primary mb-2">
-                    {holyTrinityStats.bench}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Bench Press Reps
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <div className="text-4xl font-bold text-primary mb-2">
-                    {holyTrinityStats.squat}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Squat Reps
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <div className="text-4xl font-bold text-primary mb-2">
-                    {holyTrinityStats.deadlift}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Deadlift Reps
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
+            {[
+              { title: 'Squat', stats: holyTrinityStats.squat },
+              { title: 'Bench', stats: holyTrinityStats.bench },
+              { title: 'Deadlift', stats: holyTrinityStats.deadlift },
+            ].map((lift) => (
+              <motion.div
+                key={lift.title}
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Card className="text-center">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xl text-primary">{lift.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div>
+                      <div className="text-3xl font-bold">{lift.stats.totalReps}</div>
+                      <p className="text-sm text-muted-foreground">Total Reps</p>
+                    </div>
+                    <div className="pt-2 border-t border-border">
+                      <div className="text-2xl font-bold text-primary">{lift.stats.maxWeight}</div>
+                      <p className="text-sm text-muted-foreground">Max Weight (kg)</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
           <div className="w-full border-b-2 border-gray-200 mb-8"></div>
         </motion.div>

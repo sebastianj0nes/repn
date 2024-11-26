@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useContext, createElement } from "react"
 import { motion, AnimatePresence, useAnimation } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, ChartBar, TrendingUp, LogOut, Plus, Zap } from "lucide-react"
+import { Dumbbell, ChartBar, TrendingUp, LogOut, Plus, Zap, Moon, Utensils, Battery, Flame, Target } from "lucide-react"
 import { UserContext } from '@/app/UserContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
@@ -17,12 +17,40 @@ const colorClasses = [
   "from-pink-400 to-red-500",
 ]
 
+const workoutTips = [
+  {
+    tip: "Stay hydrated during your workouts!",
+    icon: Zap,
+  },
+  {
+    tip: "Aim for 7-9 hours of sleep to maximize muscle recovery and growth",
+    icon: Moon,
+  },
+  {
+    tip: "Track your protein intake - aim for 1.6-2.2g per kg of body weight",
+    icon: Utensils,
+  },
+  {
+    tip: "Don't skip your rest days - they're crucial for muscle recovery",
+    icon: Battery,
+  },
+  {
+    tip: "Remember to warm up properly to prevent injuries",
+    icon: Flame,
+  },
+  {
+    tip: "Focus on proper form over heavy weights",
+    icon: Target,
+  }
+]
+
 export default function Dashboard() {
   const [greeting, setGreeting] = useState("")
   const [colorIndex, setColorIndex] = useState(0)
   const { session } = useContext(UserContext)
   const router = useRouter()
   const buttonControls = useAnimation()
+  const [randomTipIndex] = useState(() => Math.floor(Math.random() * workoutTips.length))
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -45,7 +73,9 @@ export default function Dashboard() {
       })
     }
 
-    return () => clearInterval(intervalId)
+    return () => {
+      clearInterval(intervalId)
+    }
   }, [buttonControls, session])
 
   const handleSignOut = async () => {
@@ -146,12 +176,22 @@ export default function Dashboard() {
         transition={{ delay: 0.8 }}
         className="flex justify-center mb-8"
       >
-        <Card className="p-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <Zap className="h-6 w-6" />
-            <span className="text-lg font-semibold">Quick Tip: Stay hydrated during your workouts!</span>
-          </CardContent>
-        </Card>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={randomTipIndex}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="p-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+              <CardContent className="flex items-center space-x-2">
+                {createElement(workoutTips[randomTipIndex].icon, { className: "h-6 w-6" })}
+                <span className="text-lg font-semibold">{workoutTips[randomTipIndex].tip}</span>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
       </motion.div>
 
       <motion.div

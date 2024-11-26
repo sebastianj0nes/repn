@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap, Heart, Brain, Footprints, ChevronLeft, Badge, Pencil, LucideIcon, ThumbsDown, ThumbsUp, Minus, AlertCircle, Trash2 } from 'lucide-react'
+import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap , ChevronLeft , Badge, Pencil, LucideIcon, ThumbsDown, ThumbsUp, Minus, AlertCircle, Trash2, Mountain, Gauge, Target, Activity } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Confetti from 'react-confetti'
 import Link from 'next/link'
@@ -26,6 +26,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { 
+  Barbell, 
+  Heartbeat,
+  PersonSimpleWalk,
+  Pulse,
+  Brain
+} from "@phosphor-icons/react"
 
 interface Set {
   weight?: number | null;
@@ -52,14 +59,36 @@ interface Workout {
   feeling: 'great' | 'okay' | 'bad';
 }
 
-const muscleGroups: { name: string; icon: LucideIcon }[] = [
-  { name: 'Chest', icon: Heart },
-  { name: 'Back', icon: Dumbbell },
-  { name: 'Legs', icon: Footprints },
-  { name: 'Shoulders', icon: Footprints },
-  { name: 'Arms', icon: Footprints },
-  { name: 'Core', icon: Brain },
-  { name: 'Cardio', icon: Footprints },
+const muscleGroups = [
+  { 
+    name: 'Chest', 
+    icon: Barbell
+  },
+  { 
+    name: 'Back', 
+    icon: Barbell,
+    props: { weight: "light" as const }
+  },
+  { 
+    name: 'Legs', 
+    icon: PersonSimpleWalk // Person walking for legs
+  },
+  { 
+    name: 'Core', 
+    icon: Pulse          // Core/abs representation
+  },
+  { 
+    name: 'Tricep', 
+    icon: Dumbbell       // Dumbbell for tricep exercises
+  },
+  { 
+    name: 'Bicep', 
+    icon: Barbell        // Barbell for bicep curls
+  },
+  { 
+    name: 'Shoulders', 
+    icon: Heartbeat      // Shoulder press movement
+  }
 ]
 
 export default function NewWorkoutPage() {
@@ -86,7 +115,6 @@ export default function NewWorkoutPage() {
 
   const totalSteps = 5 // Total number of steps in the workout process
 
-  const [muscleGroups, setMuscleGroups] = useState<{ name: string; icon: LucideIcon }[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
   const [selectedExercise, setSelectedExercise] = useState('');
@@ -632,20 +660,27 @@ export default function NewWorkoutPage() {
               <CardTitle>Choose Muscle Groups</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {muscleGroups.map((group) => (
-                  <Button
-                    key={group.name}
-                    onClick={() => toggleMuscleGroup(group.name)}
-                    variant={workout?.muscleGroups.includes(group.name) ? "default" : "outline"}
-                    className={`h-24 flex flex-col items-center justify-center ${
-                      workout?.muscleGroups.includes(group.name) ? 'bg-blue-500 text-white' : ''
-                    }`}
-                  >
-                    <group.icon className="h-8 w-8 mb-2" />
-                    {group.name}
-                  </Button>
-                ))}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {muscleGroups.map((group) => {
+                  const Icon = group.icon;
+                  return (
+                    <Button
+                      key={group.name}
+                      onClick={() => toggleMuscleGroup(group.name)}
+                      variant={workout?.muscleGroups.includes(group.name) ? "default" : "outline"}
+                      className={`h-24 flex flex-col items-center justify-center ${
+                        workout?.muscleGroups.includes(group.name) ? 'bg-blue-500 text-white' : ''
+                      }`}
+                    >
+                      <Icon 
+                        size={32} 
+                        weight={(group.props?.weight || "bold") as "bold" | "light" | "regular" | "thin" | "fill"} 
+                        className="mb-2" 
+                      />
+                      {group.name}
+                    </Button>
+                  );
+                })}
               </div>
               <motion.div animate={buttonControls}>
                 <Button 
@@ -1207,21 +1242,10 @@ export default function NewWorkoutPage() {
   };
 
   useEffect(() => {
-    fetchMuscleGroups();
-  }, []);
-
-  useEffect(() => {
     if (selectedMuscleGroup) {
       fetchExercises(selectedMuscleGroup);
     }
   }, [selectedMuscleGroup]);
-
-  const fetchMuscleGroups = async () => {
-    const response = await fetch('/api/exercises');
-    const data = await response.json();
-    const uniqueMuscleGroups = Array.from(new Set(data.map((exercise: { muscle_group: string }) => exercise.muscle_group)));
-    setMuscleGroups(uniqueMuscleGroups.map((name: unknown) => ({ name: name as string, icon: Dumbbell })));
-  };
 
   const fetchExercises = async (muscleGroup: string): Promise<Exercise[]> => {
     try {
