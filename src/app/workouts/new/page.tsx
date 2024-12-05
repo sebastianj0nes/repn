@@ -86,7 +86,7 @@ const muscleGroups = [
     icon: Barbell        // Barbell for bicep curls
   },
   { 
-    name: 'Shoulders', 
+    name: 'Shoulder', 
     icon: Heartbeat      // Shoulder press movement
   }
 ]
