@@ -15,6 +15,7 @@ import { Line, LineChart, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, Resp
 import { TooltipProvider, TooltipContent, TooltipTrigger, Tooltip } from "@/components/ui/tooltip"
 import { format, parseISO } from 'date-fns'
 import { Gauge } from 'lucide-react'
+import { Button } from "@/components/ui/button"
 
 type Workout = Database['public']['tables']['workouts']['Row']
 type Exercise = Database['public']['tables']['exercises']['Row']
@@ -38,6 +39,8 @@ export default function StatsPage() {
     deadlift: { totalReps: 0, maxWeight: 0 }
   })
   const [weightData, setWeightData] = useState<WeightData[]>([])
+  const [showTooltip, setShowTooltip] = useState(false)
+  const [showWeightTooltip, setShowWeightTooltip] = useState(false)
 
   const supabase = createClientComponentClient<Database>()
 
@@ -305,13 +308,26 @@ export default function StatsPage() {
               The Big Three
             </h2>
             <TooltipProvider>
-              <Tooltip delayDuration={0}>
+              <Tooltip 
+                open={showTooltip} 
+                onOpenChange={setShowTooltip}
+              >
                 <TooltipTrigger asChild>
-                  <InfoIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="p-0 h-auto w-auto hover:bg-transparent"
+                    onClick={() => setShowTooltip(!showTooltip)}
+                  >
+                    <InfoIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                  </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs text-sm">
-                    The three main compound lifts in powerlifting: Squat, Bench Press, and Deadlift.
+                <TooltipContent 
+                  side="top" 
+                  className="max-w-[200px] p-3"
+                >
+                  <p className="text-sm">
+                    The three main compound lifts in powerlifting: Squat, Bench Press and Deadlift.
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -446,12 +462,25 @@ export default function StatsPage() {
               Weight Progress
             </h2>
             <TooltipProvider>
-              <Tooltip delayDuration={0}>
+              <Tooltip 
+                open={showWeightTooltip} 
+                onOpenChange={setShowWeightTooltip}
+              >
                 <TooltipTrigger asChild>
-                  <Gauge className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="p-0 h-auto w-auto hover:bg-transparent"
+                    onClick={() => setShowWeightTooltip(!showWeightTooltip)}
+                  >
+                    <Gauge className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
+                  </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs text-sm">
+                <TooltipContent 
+                  side="top" 
+                  className="max-w-[200px] p-3"
+                >
+                  <p className="text-sm">
                     Track your weight progress over time
                   </p>
                 </TooltipContent>
