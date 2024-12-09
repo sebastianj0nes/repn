@@ -372,7 +372,7 @@ export default function StatsPage() {
           className="pb-16 mt-16"
         >
           <h2 className="text-2xl font-bold text-center mb-8 text-primary pb-4 pt-3">
-            Exercise Progress Tracker
+            Exercise Progress
           </h2>
 
           <div className="w-full max-w-sm mx-auto mb-8">
@@ -455,9 +455,9 @@ export default function StatsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-4 mb-24"
+          className="mt-4 mb-24 -mx-4 sm:mx-0"
         >
-          <div className="flex justify-center items-center gap-2 mb-8">
+          <div className="flex justify-center items-center gap-2 mb-4 px-4 sm:px-0">
             <h2 className="text-2xl font-bold text-center text-primary">
               Weight Progress
             </h2>
@@ -488,8 +488,8 @@ export default function StatsPage() {
             </TooltipProvider>
           </div>
 
-          <Card className="w-full p-4">
-            <CardContent className="pt-4">
+          <Card className="w-full">
+            <CardContent className="p-0 sm:p-4">
               {weightData.length > 0 ? (
                 <div className="h-[400px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -497,9 +497,9 @@ export default function StatsPage() {
                       data={weightData}
                       margin={{
                         top: 20,
-                        right: 30,
-                        left: 20,
-                        bottom: 30,
+                        right: 5,
+                        left: 0,
+                        bottom: 60,
                       }}
                     >
                       <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -509,20 +509,32 @@ export default function StatsPage() {
                         angle={-45}
                         textAnchor="end"
                         height={60}
+                        tick={{ fontSize: 12 }}
+                        tickMargin={20}
+                        interval={'preserveStartEnd'}
                       />
                       <YAxis 
                         domain={['auto', 'auto']}
-                        tickFormatter={(value) => `${value}kg`}
+                        tickFormatter={(value) => `${value}`}
+                        tick={{ fontSize: 12 }}
+                        width={30}
                       />
                       <RechartsTooltip
                         contentStyle={{
                           backgroundColor: 'hsl(var(--card))',
                           border: '1px solid hsl(var(--border))',
                           borderRadius: '6px',
-                          padding: '8px'
+                          padding: '8px',
+                          fontSize: '12px',
+                          zIndex: 1000,
+                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
                         }}
-                        labelFormatter={(date: string) => format(parseISO(date), 'MMMM d, yyyy')}
+                        wrapperStyle={{ zIndex: 1000 }}
+                        cursor={{ strokeWidth: 1 }}
+                        labelFormatter={(date: string) => format(parseISO(date), 'MMM d, yyyy')}
                         formatter={(value: number) => [`${value}kg`, 'Weight']}
+                        isAnimationActive={false}
+                        position={{ y: 0 }}
                       />
                       <Line
                         type="monotone"
@@ -532,13 +544,13 @@ export default function StatsPage() {
                         dot={{
                           stroke: '#8884d8',
                           strokeWidth: 2,
-                          r: 4,
+                          r: 3,
                           fill: 'hsl(var(--card))'
                         }}
                         activeDot={{
                           stroke: '#8884d8',
                           strokeWidth: 2,
-                          r: 6,
+                          r: 5,
                           fill: '#8884d8'
                         }}
                         connectNulls={true}
