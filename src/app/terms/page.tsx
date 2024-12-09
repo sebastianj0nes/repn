@@ -1,17 +1,17 @@
 export default function TermsPage() {
   return (
     <div className="container mx-auto px-4 py-8 pb-24">
-      <h1 className="text-2xl font-bold mb-4">Terms and Conditions for Lift Log</h1>
+      <h1 className="text-2xl font-bold mb-4">Terms and Conditions for Repn</h1>
       <p className="mb-4">Last updated: 25th November 2024</p>
 
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">1. Acceptance of Terms</h2>
-        <p>By accessing or using the Lift Log application (&apos;App&apos;), you agree to be bound by these Terms and Conditions. If you disagree with any part of these terms, you may not use our App.</p>
+        <p>By accessing or using the Repn application (&apos;App&apos;), you agree to be bound by these Terms and Conditions. If you disagree with any part of these terms, you may not use our App.</p>
       </section>
 
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">2. Description of Service</h2>
-        <p>Lift Log is a fitness tracking application that allows users to:</p>
+        <p>Repn is a fitness tracking application that allows users to:</p>
         <ul className="list-disc list-inside ml-4">
           <li>Track workouts</li>
           <li>View exercise insights and statistics</li>
@@ -22,27 +22,27 @@ export default function TermsPage() {
 
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">3. User Accounts</h2>
-        <p>3.1. You must create an account to use Lift Log. You are responsible for maintaining the confidentiality of your account and password.</p>
+        <p>3.1. You must create an account to use Repn. You are responsible for maintaining the confidentiality of your account and password.</p>
         <p>3.2. You agree to provide accurate, current, and complete information during the registration process and to update such information to keep it accurate, current, and complete.</p>
       </section>
 
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">4. User Content</h2>
-        <p>4.1. You retain all rights to the content you submit to Lift Log, including workout data and images.</p>
-        <p>4.2. By submitting content to Lift Log, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, and display such content within the App.</p>
+        <p>4.1. You retain all rights to the content you submit to Repn, including workout data and images.</p>
+        <p>4.2. By submitting content to Repn, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, and display such content within the App.</p>
       </section>
 
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">5. Acceptable Use</h2>
-        <p>5.1. You agree not to use Lift Log for any unlawful purpose or in any way that interrupts, damages, or impairs the App.</p>
+        <p>5.1. You agree not to use Repn for any unlawful purpose or in any way that interrupts, damages, or impairs the App.</p>
         <p>5.2. You must not transmit any worms, viruses, or any code of a destructive nature.</p>
       </section>
 
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">6. Disclaimer of Warranties</h2>
-        <p>6.1. Lift Log is provided &apos;gitas is&apos; without any warranties, expressed or implied.</p>
+        <p>6.1. Repn is provided &apos;gitas is&apos; without any warranties, expressed or implied.</p>
         <p>6.2. We do not warrant that the App will be error-free or uninterrupted.</p>
-        <p>6.3. Lift Log is not a substitute for professional medical advice. Consult a healthcare professional before starting any exercise program.</p>
+        <p>6.3. Repn is not a substitute for professional medical advice. Consult a healthcare professional before starting any exercise program.</p>
       </section>
 
       <section className="mb-6">
@@ -57,7 +57,7 @@ export default function TermsPage() {
 
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">9. Termination</h2>
-        <p>We may terminate or suspend your account and access to Lift Log immediately, without prior notice or liability, for any reason.</p>
+        <p>We may terminate or suspend your account and access to Repn immediately, without prior notice or liability, for any reason.</p>
       </section>
 
       <section className="mb-6">

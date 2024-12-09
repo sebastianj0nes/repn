@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, Smile, Frown, Meh } from 'lucide-react'
+import { Dumbbell, Smile, Frown, Meh, Gauge } from 'lucide-react'
 import Image from 'next/image'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/lib/database.types'
@@ -80,6 +80,7 @@ export default function ProgressPage() {
             muscleGroup: workout.muscle_group,
             feeling: workout.feeling,
             sotd: workout.sotd,
+            userWeight: workout.user_weight,
             exercises: workout.exercises.map((exercise: any) => ({
               name: exercise.name,
               sets: Array.isArray(exercise.exercise_sets) 
@@ -205,33 +206,41 @@ export default function ProgressPage() {
                               {getEmojiForFeeling(workoutDetail.feeling)}
                             </div>
                           </div>
+                          {workoutDetail.userWeight && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="flex items-center gap-2 bg-muted/50 p-2 rounded-md"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Gauge className="h-5 w-5 text-blue-500" />
+                                <span className="text-sm font-medium">Weight:</span>
+                                <span className="text-sm font-bold text-blue-600">
+                                  {workoutDetail.userWeight} kg
+                                </span>
+                              </div>
+                            </motion.div>
+                          )}
                           <div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
                             <strong>Set of the day:</strong> {workoutDetail.sotd}
                           </div>
                         </div>
                         <div className="w-full">
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.5 }}
-                            className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] rounded-lg overflow-hidden"
-                          >
-                            {workoutDetail.image ? (
+                          {workoutDetail.image && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.5 }}
+                              className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] rounded-lg overflow-hidden"
+                            >
                               <Image
                                 src={workoutDetail.image}
                                 alt="Workout selfie"
                                 fill
                                 className="object-contain rounded-lg"
                               />
-                            ) : (
-                              <Image
-                                src="/placeholder.svg"
-                                alt="Placeholder"
-                                fill
-                                className="object-contain rounded-lg"
-                              />
-                            )}
-                          </motion.div>
+                            </motion.div>
+                          )}
                         </div>
                         <div className="w-full space-y-4">
                           {workoutDetail.exercises.map((exercise: { name: string; sets: any[] }, index: number) => (

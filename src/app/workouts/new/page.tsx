@@ -57,6 +57,7 @@ interface Workout {
   muscleGroups: string[];
   exercises: Exercise[];
   feeling: 'great' | 'okay' | 'bad';
+  userWeight?: number;
 }
 
 const muscleGroups = [
@@ -112,6 +113,8 @@ export default function NewWorkoutPage() {
   const [selectedExerciseId, setSelectedExerciseId] = useState<string>('');
   const [setErrors, setSetErrors] = useState<{ [key: number]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showWeightInput, setShowWeightInput] = useState(false);
+  const [showSOTDWarning, setShowSOTDWarning] = useState(false);
 
   const totalSteps = 5 // Total number of steps in the workout process
 
@@ -303,10 +306,21 @@ export default function NewWorkoutPage() {
   }
 
   const finishExercises = () => {
-    if ((workout?.exercises?.length ?? 0) > 0) {
-      goToNextStep()
+    const hasSetOfTheDay = workout?.exercises.some(exercise =>
+      exercise.sets.some(set => set.isSetOfTheDay)
+    );
+
+    if (!hasSetOfTheDay) {
+      setShowSOTDWarning(true);
+    } else {
+      goToNextStep();
     }
-  }
+  };
+
+  const handleContinueWithoutSOTD = () => {
+    setShowSOTDWarning(false);
+    goToNextStep();
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -414,6 +428,7 @@ export default function NewWorkoutPage() {
         feeling: workout?.feeling,
         sotd,
         image_url,
+        user_weight: workout?.userWeight || null,
         exercises: transformedExercises
       })
 
@@ -775,10 +790,34 @@ export default function NewWorkoutPage() {
             </Card>
 
             {workout?.exercises && workout.exercises.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Current Exercises</h3>
-                {renderSavedExercises()}
-              </div>
+              <>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-center mb-3">Exercise Tally</h3>
+                  <div className="flex flex-wrap justify-center gap-4">
+                    {workout.muscleGroups.map(group => {
+                      const count = workout.exercises.filter(ex => ex.muscle_group === group).length;
+                      const muscleGroupIcon = muscleGroups.find(mg => mg.name === group)?.icon;
+                      const Icon = muscleGroupIcon || Dumbbell;
+                      
+                      return (
+                        <div 
+                          key={group}
+                          className="flex items-center gap-2 bg-white px-4 py-2 rounded-md shadow-sm border border-gray-100"
+                        >
+                          <Icon className="h-5 w-5 text-gray-600" />
+                          <span className="font-medium text-gray-700">{group}:</span>
+                          <span className="text-lg font-bold text-primary">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold">Current Exercises</h3>
+                  {renderSavedExercises()}
+                </div>
+              </>
             )}
 
             {(workout?.exercises?.length ?? 0) > 0 && (
@@ -832,6 +871,70 @@ export default function NewWorkoutPage() {
                     </ul>
                   </motion.div>
                 ))}
+              </div>
+              <div className="border-t pt-4 mt-6">
+                <div className="space-y-4 flex flex-col items-center text-center">
+                  <h3 className="text-lg font-medium">Have you tracked your weight today?</h3>
+                  <div className="flex gap-4">
+                    <Button 
+                      variant={showWeightInput ? "default" : "outline"}
+                      onClick={() => setShowWeightInput(true)}
+                      className={`w-24 ${
+                        showWeightInput 
+                          ? "bg-green-500 hover:bg-green-600 text-white border-green-600" 
+                          : "hover:border-green-500 hover:text-green-500"
+                      }`}
+                    >
+                      Yes
+                    </Button>
+                    <Button 
+                      variant={!showWeightInput ? "default" : "outline"}
+                      onClick={() => {
+                        setShowWeightInput(false);
+                        setWorkout(prev => prev ? { ...prev, userWeight: undefined } : null);
+                      }}
+                      className={`w-24 ${
+                        !showWeightInput 
+                          ? "bg-red-500 hover:bg-red-600 text-white border-red-600" 
+                          : "hover:border-red-500 hover:text-red-500"
+                      }`}
+                    >
+                      No
+                    </Button>
+                  </div>
+
+                  {showWeightInput && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-2 w-full max-w-[300px]"
+                    >
+                      <Label htmlFor="weight-input" className="flex items-center justify-center gap-2">
+                        <Gauge className="h-4 w-4" />
+                        Enter your weight
+                      </Label>
+                      <div className="flex items-center justify-center gap-2">
+                        <Input
+                          id="weight-input"
+                          type="number"
+                          step="0.1"
+                          inputMode="decimal"
+                          placeholder="Enter weight"
+                          value={workout?.userWeight || ''}
+                          onChange={(e) => setWorkout(prev => 
+                            prev ? { 
+                              ...prev, 
+                              userWeight: e.target.value ? parseFloat(e.target.value) : undefined 
+                            } : null
+                          )}
+                          className="max-w-[200px] text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <span className="text-sm text-muted-foreground">kg</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
               </div>
               <Button onClick={() => goToNextStep()} className="w-full">
                 Next <ChevronRight className="ml-2 h-4 w-4" />
@@ -1345,6 +1448,37 @@ export default function NewWorkoutPage() {
         className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white"
       >
         Continue Workout
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+<Dialog open={showSOTDWarning} onOpenChange={setShowSOTDWarning}>
+  <DialogContent className="bg-white text-black border border-gray-300 p-6 rounded-lg shadow-lg">
+    <DialogHeader>
+      <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center">
+        <Star className="h-6 w-6 text-yellow-500 mr-2" />
+        No Set of the Day Selected
+      </DialogTitle>
+      <DialogDescription className="text-gray-600 mt-2">
+        You haven&apos;t selected a &quot;Set of the Day&quot;. Would you like to continue without selecting one, or go back and choose one now?
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter className="mt-6 flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setShowSOTDWarning(false)}
+        className="w-full sm:w-auto border-gray-300 text-gray-700 hover:bg-gray-100"
+      >
+        Go Back
+      </Button>
+      <Button
+        type="button"
+        onClick={handleContinueWithoutSOTD}
+        className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white"
+      >
+        Continue Without
       </Button>
     </DialogFooter>
   </DialogContent>
