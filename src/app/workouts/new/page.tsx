@@ -63,32 +63,31 @@ interface Workout {
 const muscleGroups = [
   { 
     name: 'Chest', 
-    icon: Barbell
+    icon: '/muscleGroups/Chest.png'
   },
   { 
     name: 'Back', 
-    icon: Barbell,
-    props: { weight: "light" as const }
+    icon: '/muscleGroups/Back.png'
   },
   { 
     name: 'Legs', 
-    icon: PersonSimpleWalk // Person walking for legs
+    icon: '/muscleGroups/Leg.png' 
   },
   { 
     name: 'Core', 
-    icon: Pulse          // Core/abs representation
+    icon: '/muscleGroups/Core.png'        
   },
   { 
     name: 'Tricep', 
-    icon: Dumbbell       // Dumbbell for tricep exercises
+    icon: '/muscleGroups/Tricep.png'     
   },
   { 
     name: 'Bicep', 
-    icon: Barbell        // Barbell for bicep curls
+    icon: '/muscleGroups/Bicep.png'      
   },
   { 
     name: 'Shoulder', 
-    icon: Heartbeat      // Shoulder press movement
+    icon: '/muscleGroups/Shoulder.png'    
   }
 ]
 
@@ -676,26 +675,25 @@ export default function NewWorkoutPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {muscleGroups.map((group) => {
-                  const Icon = group.icon;
-                  return (
-                    <Button
-                      key={group.name}
-                      onClick={() => toggleMuscleGroup(group.name)}
-                      variant={workout?.muscleGroups.includes(group.name) ? "default" : "outline"}
-                      className={`h-24 flex flex-col items-center justify-center ${
-                        workout?.muscleGroups.includes(group.name) ? 'bg-blue-500 text-white' : ''
-                      }`}
-                    >
-                      <Icon 
-                        size={32} 
-                        weight={(group.props?.weight || "bold") as "bold" | "light" | "regular" | "thin" | "fill"} 
-                        className="mb-2" 
-                      />
-                      {group.name}
-                    </Button>
-                  );
-                })}
+                {muscleGroups.map((group) => (
+                  <Button
+                    key={group.name}
+                    onClick={() => toggleMuscleGroup(group.name)}
+                    variant={workout?.muscleGroups.includes(group.name) ? "default" : "outline"}
+                    className={`h-28 flex flex-col items-center justify-center gap-3 ${
+                      workout?.muscleGroups.includes(group.name) ? 'bg-blue-500 text-white' : ''
+                    }`}
+                  >
+                    <Image 
+                      src={group.icon}
+                      alt={`${group.name} icon`}
+                      width={48}
+                      height={48}
+                      className="mb-1"
+                    />
+                    {group.name}
+                  </Button>
+                ))}
               </div>
               <motion.div animate={buttonControls}>
                 <Button 
