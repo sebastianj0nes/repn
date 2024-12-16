@@ -1,55 +1,58 @@
 'use client'
 
 import { useState } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Icons } from "@/components/ui/icons";
+import { toast } from 'sonner';
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-
-export default function SignUpPage() {
+export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            full_name: name, 
-          },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            full_name: name,
+            name: name,
+          }
         },
       });
 
-      if (error) {
-        console.error('Signup error:', error);
-        throw error;
+      if (signUpError) {
+        toast.error(signUpError.message);
+        console.error('Signup error:', signUpError);
+        return;
       }
 
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        toast.error('This email is already registered.');
+        return;
+      }
+
+      // Show success message and redirect
       if (data.user) {
-        console.log('Signup successful:', data.user);
-        alert('Signup successful! Please check your email to confirm your account.');
+        toast.success('Please check your email to confirm your account');
         router.push('/signin');
       }
     } catch (error) {
-      if (error instanceof Error) {
-        console.error('Caught error:', error);
-        alert(error.message);
-      } else {
-        console.error('Unknown error:', error);
-        alert('An unknown error occurred');
-      }
+      console.error('Error during signup:', error);
+      toast.error('Something went wrong during signup');
     } finally {
       setIsLoading(false);
     }
