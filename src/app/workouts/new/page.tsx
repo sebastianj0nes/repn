@@ -71,25 +71,25 @@ const muscleGroups = [
   },
   { 
     name: 'Legs', 
-    icon: '/muscleGroups/Leg.png' 
+    icon: '/muscleGroups/Leg.png'
   },
   { 
     name: 'Core', 
-    icon: '/muscleGroups/Core.png'        
+    icon: '/muscleGroups/Core.png'
   },
   { 
     name: 'Tricep', 
-    icon: '/muscleGroups/Tricep.png'     
+    icon: '/muscleGroups/Tricep.png'
   },
   { 
     name: 'Bicep', 
-    icon: '/muscleGroups/Bicep.png'      
+    icon: '/muscleGroups/Bicep.png'
   },
   { 
     name: 'Shoulder', 
-    icon: '/muscleGroups/Shoulder.png'    
+    icon: '/muscleGroups/Shoulder.png'
   }
-]
+];
 
 export default function NewWorkoutPage() {
   const [step, setStep] = useState(1)
@@ -802,7 +802,13 @@ export default function NewWorkoutPage() {
                           key={group}
                           className="flex items-center gap-2 bg-white px-4 py-2 rounded-md shadow-sm border border-gray-100"
                         >
-                          <Icon className="h-5 w-5 text-gray-600" />
+                          <Image 
+                            src={muscleGroupIcon || '/muscleGroups/default.png'}
+                            alt={`${group} icon`}
+                            width={24}
+                            height={24}
+                            className="object-contain"
+                          />
                           <span className="font-medium text-gray-700">{group}:</span>
                           <span className="text-lg font-bold text-primary">{count}</span>
                         </div>
@@ -1383,6 +1389,49 @@ export default function NewWorkoutPage() {
     } else {
       console.error('Failed to fetch exercises');
     }
+  };
+
+  const renderMuscleGroupIcon = (group: string) => {
+    const muscleGroup = muscleGroups.find(mg => mg.name === group);
+    if (!muscleGroup) return null;
+
+    return (
+      <Image 
+        src={muscleGroup.icon}
+        alt={`${muscleGroup.name} icon`}
+        width={24}
+        height={24}
+        className="object-contain"
+      />
+    );
+  };
+
+  const renderMuscleTally = () => {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {workout?.muscleGroups.map(group => {
+          const count = workout.exercises.filter(ex => ex.muscle_group === group).length;
+          const muscleGroup = muscleGroups.find(mg => mg.name === group);
+          
+          return (
+            <div 
+              key={group}
+              className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-md shadow-sm border border-gray-100"
+            >
+              <Image 
+                src={muscleGroup?.icon || '/muscleGroups/default.png'}
+                alt={`${group} icon`}
+                width={16}
+                height={16}
+                className="object-contain"
+              />
+              <span className="text-sm font-medium text-gray-700">{group}:</span>
+              <span className="text-sm font-bold text-primary">{count}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
