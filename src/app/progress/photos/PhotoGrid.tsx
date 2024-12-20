@@ -113,14 +113,14 @@ export default function PhotoGrid({ photos, lastPhotoRef }: PhotoGridProps) {
 
   return (
     <div ref={containerRef} className="w-full h-[calc(100vh-12rem)] overflow-hidden relative">
-      {/* Floating month indicator with refined styling */}
+      {/* Floating month indicator with mobile fixes */}
       <AnimatePresence>
         {currentMonth && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute top-3 left-1/2 transform -translate-x-1/2 z-10"
+            className="fixed left-0 right-0 mx-auto top-[4.5rem] w-fit z-50 md:absolute md:left-1/2 md:right-auto md:top-3 md:-translate-x-1/2"
           >
             <div className="px-4 py-1.5 bg-black/90 backdrop-blur-md rounded-full shadow-xl border border-white/10 flex items-center justify-center">
               <span className="text-sm font-medium tracking-wide text-white/90">
