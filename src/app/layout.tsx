@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { ThemeProvider } from 'next-themes'
 import AuthWrapper from '@/components/AuthWrapper'
 import { Analytics } from "@vercel/analytics/react"
-import { Toaster } from 'sonner';
+import Providers from '@/components/Providers'
 
 import '@/app/globals.css'
 import BottomNav from '@/components/BottomNav'
@@ -24,14 +23,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <body className={inter.className}>
+        <Providers>
           <AuthWrapper>
             <main>{children}</main>
-            <Toaster />
+            <BottomNav />
           </AuthWrapper>
-        </ThemeProvider>
-        <Analytics/>
+        </Providers>
+        <Analytics />
       </body>
     </html>
   )

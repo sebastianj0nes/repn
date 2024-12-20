@@ -4,11 +4,12 @@ import { useState, useRef, useEffect, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, Smile, Frown, Meh, Gauge } from 'lucide-react'
+import { Dumbbell, Smile, Frown, Meh, Gauge, ImageIcon } from 'lucide-react'
 import Image from 'next/image'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/lib/database.types'
 import { UserContext } from '../UserContext'
+import Link from 'next/link'
 
 export default function ProgressPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
@@ -138,32 +139,52 @@ export default function ProgressPage() {
       <div className="container mx-auto px-4 py-6 flex-grow flex flex-col overflow-hidden">
         <h1 className="text-3xl font-bold text-primary mb-6">Your Progress</h1>
         <div className="flex-grow flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6 overflow-hidden">
-          <motion.div 
-            className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Card className="h-full">
-              <CardContent className="p-1 md:p-4">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  onMonthChange={setVisibleMonth}
-                  className="w-full"
-                  modifiers={{ workout: workoutDays.map(day => new Date(day)) }}
-                  modifiersStyles={{
-                    workout: {
-                      backgroundColor: '#4ade80',
-                      color: 'white',
-                      borderRadius: '50%',
-                    }
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </motion.div>
+          <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 space-y-4">
+            <motion.div 
+              className="w-full"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Card className="h-full">
+                <CardContent className="p-1 md:p-4">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    onMonthChange={setVisibleMonth}
+                    className="w-full"
+                    modifiers={{ workout: workoutDays.map(day => new Date(day)) }}
+                    modifiersStyles={{
+                      workout: {
+                        backgroundColor: '#4ade80',
+                        color: 'white',
+                        borderRadius: '50%',
+                      }
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Card className="hover:shadow-lg transition-all duration-300">
+                <Link href="/progress/photos">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <ImageIcon className="h-5 w-5 text-primary" />
+                      <span className="font-medium text-primary">View Photo Library</span>
+                    </div>
+                    <span className="text-muted-foreground">→</span>
+                  </CardContent>
+                </Link>
+              </Card>
+            </motion.div>
+          </div>
           <div className="w-full md:w-2/3 lg:w-3/4 overflow-y-auto">
             <AnimatePresence mode="wait">
               {isLoading ? (
@@ -213,9 +234,9 @@ export default function ProgressPage() {
                               className="flex items-center gap-2 bg-muted/50 p-2 rounded-md"
                             >
                               <div className="flex items-center gap-2">
-                                <Gauge className="h-5 w-5 text-blue-500" />
+                                <Gauge className="h-5 w-5 text-[#663399]" />
                                 <span className="text-sm font-medium">Weight:</span>
-                                <span className="text-sm font-bold text-blue-600">
+                                <span className="text-sm font-bold text-[#663399]">
                                   {workoutDetail.userWeight} kg
                                 </span>
                               </div>

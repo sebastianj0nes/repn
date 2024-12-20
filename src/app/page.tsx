@@ -23,7 +23,11 @@ export default function Home() {
   }, [supabase.auth, router])
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-xl font-bold">Loading...</div>
+      </div>
+    )
   }
 
   return (

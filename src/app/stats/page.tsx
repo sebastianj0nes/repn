@@ -403,19 +403,19 @@ export default function StatsPage() {
                         <Line 
                           type="monotone" 
                           dataKey="weight" 
-                          stroke="#8884d8" 
+                          stroke="#9C8C9C" 
                           strokeWidth={2}
                           dot={{
-                            stroke: '#8884d8',
+                            stroke: '#9C8C9C',
                             strokeWidth: 2,
                             r: 3,
                             fill: 'hsl(var(--card))'
                           }}
                           activeDot={{
-                            stroke: '#8884d8',
+                            stroke: '#9C8C9C',
                             strokeWidth: 2,
                             r: 5,
-                            fill: '#8884d8'
+                            fill: '#9C8C9C'
                           }}
                         />
                         <XAxis 
@@ -547,19 +547,19 @@ export default function StatsPage() {
                         <Line
                           type="monotone"
                           dataKey="weight"
-                          stroke="#8884d8"
+                          stroke="#9C8C9C"
                           strokeWidth={2}
                           dot={{
-                            stroke: '#8884d8',
+                            stroke: '#9C8C9C',
                             strokeWidth: 2,
                             r: 3,
                             fill: 'hsl(var(--card))'
                           }}
                           activeDot={{
-                            stroke: '#8884d8',
+                            stroke: '#9C8C9C',
                             strokeWidth: 2,
                             r: 5,
-                            fill: '#8884d8'
+                            fill: '#9C8C9C'
                           }}
                           connectNulls={true}
                         />
