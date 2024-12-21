@@ -63,31 +63,31 @@ interface Workout {
 const muscleGroups = [
   { 
     name: 'Chest', 
-    icon: '/muscleGroups/Chest.png'
+    icon: '/muscleGroups/chest.png'
   },
   { 
     name: 'Back', 
-    icon: '/muscleGroups/Back.png'
+    icon: '/muscleGroups/back.png'
   },
   { 
     name: 'Legs', 
-    icon: '/muscleGroups/Leg.png'
+    icon: '/muscleGroups/legs.png'
   },
   { 
     name: 'Core', 
-    icon: '/muscleGroups/Core.png'
+    icon: '/muscleGroups/core.png'
   },
   { 
     name: 'Tricep', 
-    icon: '/muscleGroups/Tricep.png'
+    icon: '/muscleGroups/tricep.png'
   },
   { 
     name: 'Bicep', 
-    icon: '/muscleGroups/Bicep.png'
+    icon: '/muscleGroups/bicep.png'
   },
   { 
     name: 'Shoulder', 
-    icon: '/muscleGroups/Shoulder.png'
+    icon: '/muscleGroups/shoulder.png'
   }
 ];
 
