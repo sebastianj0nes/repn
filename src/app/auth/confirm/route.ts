@@ -7,18 +7,27 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: Request) {
   try {
     const requestUrl = new URL(request.url)
-    const code = requestUrl.searchParams.get('code')
+    const token_hash = requestUrl.searchParams.get('token_hash')
+    const type = requestUrl.searchParams.get('type')
     
-    if (code) {
+    if (token_hash && type) {
       const supabase = createRouteHandlerClient({ cookies })
-      await supabase.auth.exchangeCodeForSession(code)
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash,
+        type: 'signup'
+      })
+
+      if (error) {
+        return NextResponse.redirect(new URL('/auth/error', requestUrl.origin))
+      }
+
+      // Redirect to a success page or signin
+      return NextResponse.redirect(new URL('/signin', requestUrl.origin))
     }
 
-    // Redirect to the homepage after successful confirmation
-    return NextResponse.redirect(new URL('/', requestUrl.origin))
+    return NextResponse.redirect(new URL('/auth/error', requestUrl.origin))
   } catch (error) {
     console.error('Error confirming user:', error)
-    // Redirect to error page if something goes wrong
     return NextResponse.redirect(new URL('/auth/error', request.url))
   }
 }

@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { checkAchievementsAfterWorkout } from '@/lib/utils/checkAchievements';
 
 // Lucide Icons
 import { 
@@ -383,6 +384,11 @@ export default function LogPastWorkoutPage() {
       })
 
       if (procedureError) throw procedureError
+
+      // Check achievements after successful workout log
+      if (session.session.user.id) {
+        await checkAchievementsAfterWorkout(session.session.user.id);
+      }
 
       setIsFinished(true)
       router.push('/workouts')

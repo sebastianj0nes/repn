@@ -33,6 +33,7 @@ import {
   Pulse,
   Brain
 } from "@phosphor-icons/react"
+import { checkAchievementsAfterWorkout } from '@/lib/utils/checkAchievements'
 
 interface Set {
   weight?: number | null;
@@ -304,7 +305,7 @@ export default function NewWorkoutPage() {
     }
   }
 
-  const finishExercises = () => {
+  const finishExercises = async () => {
     const hasSetOfTheDay = workout?.exercises.some(exercise =>
       exercise.sets.some(set => set.isSetOfTheDay)
     );
@@ -312,6 +313,9 @@ export default function NewWorkoutPage() {
     if (!hasSetOfTheDay) {
       setShowSOTDWarning(true);
     } else {
+      if (session?.user?.id) {
+        await checkAchievementsAfterWorkout(session.user.id);
+      }
       goToNextStep();
     }
   };

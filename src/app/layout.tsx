@@ -3,9 +3,8 @@ import { Inter } from 'next/font/google'
 import AuthWrapper from '@/components/AuthWrapper'
 import { Analytics } from "@vercel/analytics/react"
 import Providers from '@/components/Providers'
-
+import { Toaster } from "@/components/ui/toaster"
 import '@/app/globals.css'
-import BottomNav from '@/components/BottomNav'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,10 +26,10 @@ export default function RootLayout({
         <Providers>
           <AuthWrapper>
             <main>{children}</main>
-            <BottomNav />
           </AuthWrapper>
         </Providers>
         <Analytics />
+        <Toaster />
       </body>
     </html>
   )
