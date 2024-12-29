@@ -391,8 +391,26 @@ export default function NewWorkoutPage() {
         }
       }
 
-      const setOfTheDay = workout?.exercises.flatMap(ex => ex.sets).find(set => set.isSetOfTheDay)
-      const sotd = setOfTheDay ? `${setOfTheDay.weight}x${setOfTheDay.reps} ${workout?.exercises.find(ex => ex.sets.includes(setOfTheDay))?.name}` : ''
+      const setOfTheDay = workout?.exercises.flatMap(ex => 
+        ex.sets.map(set => ({ 
+          ...set, 
+          exerciseName: ex.name, 
+          exerciseType: ex.exercise_type 
+        }))
+      ).find(set => set.isSetOfTheDay);
+
+      let sotd = '';
+      if (setOfTheDay) {
+        const { exerciseName, exerciseType } = setOfTheDay;
+        
+        if (exerciseType === 'weights') {
+          sotd = `${exerciseName}: ${setOfTheDay.weight}kg x ${setOfTheDay.reps}`;
+        } else if (exerciseType === 'bodyweight') {
+          sotd = `${exerciseName}: ${setOfTheDay.reps} reps`;
+        } else if (exerciseType === 'time') {
+          sotd = `${exerciseName}: ${setOfTheDay.duration} seconds`;
+        }
+      }
 
       // Transform exercises data to properly handle dropsets
       const transformedExercises = workout?.exercises.map(exercise => ({

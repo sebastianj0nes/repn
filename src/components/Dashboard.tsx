@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, ChartBar, TrendingUp, LogOut, Plus, Zap, Moon, Utensils, Battery, Flame, Target } from "lucide-react"
+import { Dumbbell, ChartBar, TrendingUp, LogOut, Plus, Zap, Moon, Utensils, Battery, Flame, Target, ChevronRight } from "lucide-react"
 import { UserContext } from '@/app/UserContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
@@ -50,7 +50,9 @@ export default function Dashboard() {
   const { session } = useContext(UserContext)
   const router = useRouter()
   const buttonControls = useAnimation()
-  const [randomTipIndex] = useState(() => Math.floor(Math.random() * workoutTips.length))
+  const [randomTipIndex, setRandomTipIndex] = useState(() => 
+    Math.floor(Math.random() * workoutTips.length)
+  )
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -88,146 +90,153 @@ export default function Dashboard() {
     }
   }
 
+  const handleNextTip = () => {
+    setRandomTipIndex((prevIndex) => 
+      (prevIndex + 1) % workoutTips.length
+    )
+  }
+
   if (!session) {
     return <div>Please sign in to access the dashboard</div>
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 mb-16">
+    <div className="container mx-auto px-4 py-6 mb-16">
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-4xl font-bold mb-6 text-center bg-clip-text bg-gradient-to-r from-primary to-secondary"
+        className="text-4xl font-bold text-center text-primary mt-8"
+      >
+        Repn
+      </motion.h1>
+
+      <motion.h2
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="text-2xl font-semibold mb-2 text-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary"
       >
         {greeting}!
-      </motion.h1>
+      </motion.h2>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mb-8"
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.2, delay: 0.3 }}
+        className="mb-6"
       >
-        <Card className={`bg-gradient-to-br ${colorClasses[colorIndex]} text-white`}>
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-center">Ready to crush your workout?</CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <Link href="/workouts/new">
-              <motion.div animate={buttonControls}>
-                <Button 
-                  size="lg" 
-                  className="text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 bg-white text-primary hover:bg-primary hover:text-white"
-                >
-                  <Plus className="mr-2 h-6 w-6" />
-                  Start New Workout
-                </Button>
-              </motion.div>
-            </Link>
+        <Card className={`bg-gradient-to-br ${colorClasses[colorIndex]} text-white overflow-hidden`}>
+          <CardContent className="p-6">
+            <motion.div
+              animate={{
+                scale: [1, 1.05, 1],
+                transition: { duration: 2, repeat: Infinity }
+              }}
+              className="text-center mb-4"
+            >
+              <Dumbbell className="h-12 w-12 mx-auto mb-2" />
+              <h2 className="text-xl font-bold">Ready to crush your workout?</h2>
+            </motion.div>
+            <div className="flex justify-center">
+              <Link href="/workouts/new">
+                <motion.div whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    size="lg" 
+                    className="text-lg px-8 py-6 rounded-full shadow-lg bg-white text-primary hover:bg-primary hover:text-white"
+                  >
+                    <Plus className="mr-2 h-6 w-6" />
+                    Start New Workout
+                  </Button>
+                </motion.div>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <AnimatePresence>
-          {["progress", "stats"].map((item, index) => (
-            <motion.div
-              key={item}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ delay: 0.4 + index * 0.2 }}
-            >
-              <Link href={`/${item}`}>
-                <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group">
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-primary group-hover:text-secondary transition-colors duration-300">
-                      {item === "progress" ? (
-                        <TrendingUp className="mr-2 h-5 w-5" />
-                      ) : (
-                        <ChartBar className="mr-2 h-5 w-5" />
-                      )}
-                      {item === "progress" ? "Check Progress" : "See Stats"}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      {item === "progress"
-                        ? "Track your fitness journey and see how far you've come."
-                        : "Dive into your performance metrics and personal records."}
-                    </p>
-                  </CardContent>
-                  <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-primary"
-                    initial={{ scaleX: 0 }}
-                    whileHover={{ scaleX: 1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Link href="/progress">
+            <Card className="text-center p-4 hover:bg-accent transition-colors duration-300">
+              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
+              <p className="text-sm font-medium">Progress</p>
+            </Card>
+          </Link>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Link href="/stats">
+            <Card className="text-center p-4 hover:bg-accent transition-colors duration-300">
+              <ChartBar className="h-8 w-8 mx-auto mb-2 text-primary" />
+              <p className="text-sm font-medium">Stats</p>
+            </Card>
+          </Link>
+        </motion.div>
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="flex justify-center mb-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="mb-20"
       >
-        <AnimatePresence mode="wait">
+        <Card className="bg-gradient-to-r from-yellow-400/20 to-orange-500/20 overflow-hidden relative">
           <motion.div
-            key={randomTipIndex}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.5 }}
+            animate={{
+              x: [-4, 4, -4],
+              transition: { duration: 4, repeat: Infinity }
+            }}
+            className="p-4"
           >
-            <Card className="p-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
-              <CardContent className="flex items-center space-x-2">
-                {createElement(workoutTips[randomTipIndex].icon, { className: "h-6 w-6" })}
-                <span className="text-lg font-semibold">{workoutTips[randomTipIndex].tip}</span>
-              </CardContent>
-            </Card>
+            <CardContent className="flex items-start sm:items-center gap-4 p-2">
+              {createElement(workoutTips[randomTipIndex].icon, { 
+                className: "h-8 w-8 sm:h-6 sm:w-6 text-primary flex-shrink-0" 
+              })}
+              <p className="text-sm font-medium flex-1">{workoutTips[randomTipIndex].tip}</p>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleNextTip}
+                className="absolute bottom-2 right-2 p-2 rounded-full hover:bg-primary/10 transition-colors"
+              >
+                <ChevronRight className="h-5 w-5 text-primary" />
+              </motion.button>
+            </CardContent>
           </motion.div>
-        </AnimatePresence>
+        </Card>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
-        className="flex justify-center items-center space-x-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="mt-auto flex flex-col items-center space-y-6"
       >
         <Button 
-          variant="outline" 
-          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors duration-300"
+          variant="ghost" 
+          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           onClick={handleSignOut}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out
         </Button>
-       
+
+        <div className="flex justify-center space-x-4">
+          <Link href="/privacy-policy" className="text-xs text-muted-foreground hover:underline">
+            Privacy Policy
+          </Link>
+          <Link href="/terms" className="text-xs text-muted-foreground hover:underline">
+            Terms Of Use
+          </Link>
+        </div>
       </motion.div>
-
-      <div className="text-center py-10 ">
-      <Link 
-          href="/privacy-policy" 
-          className="text-xs p-4 text-muted-foreground hover:underline"
-        >
-          Privacy Policy
-        </Link>
-        <Link 
-          href="/terms" 
-          className="text-xs text-muted-foreground hover:underline"
-        >
-          Terms Of Use
-        </Link>
-      </div>
-
-      {/* Space for BottomNav component */}
-      <div className="h-16"></div>
     </div>
   )
 }

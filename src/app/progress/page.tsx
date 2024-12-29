@@ -127,7 +127,7 @@ export default function ProgressPage() {
   const formatSotd = (sotd: string) => {
     if (!sotd) return 'None recorded';
     
-    // Split the sotd string which is typically in format "Exercise Name: weight x reps" or "Exercise Name: reps"
+    // Split the sotd string which is typically in format "Exercise Name: weight x reps" or "Exercise Name: reps reps"
     const [exerciseName, details] = sotd.split(':').map(s => s.trim());
     
     if (!details) return sotd; // Return original if not in expected format
@@ -135,8 +135,12 @@ export default function ProgressPage() {
     // Check if the details include 'x' which indicates weight and reps format
     if (details.includes('x')) {
       return sotd; // Return original format for weight exercises
+    } else if (details.includes('reps')) {
+      // For bodyweight exercises, reformat to "number Reps of Exercise Name"
+      const reps = details.split(' ')[0]; // Get the number of reps
+      return `${reps} reps of ${exerciseName}`;
     } else {
-      // For bodyweight/time exercises, just return the exercise name and value
+      // For time exercises or other formats, return as is
       return sotd;
     }
   }
