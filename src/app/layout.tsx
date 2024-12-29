@@ -4,6 +4,7 @@ import AuthWrapper from '@/components/AuthWrapper'
 import { Analytics } from "@vercel/analytics/react"
 import Providers from '@/components/Providers'
 import { Toaster } from "@/components/ui/toaster"
+import { TipProvider } from '@/context/TipContext'
 import '@/app/globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -24,9 +25,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <AuthWrapper>
-            <main>{children}</main>
-          </AuthWrapper>
+          <TipProvider>
+            <AuthWrapper>
+              <main>{children}</main>
+            </AuthWrapper>
+          </TipProvider>
         </Providers>
         <Analytics />
         <Toaster />

@@ -34,6 +34,7 @@ import {
   Brain
 } from "@phosphor-icons/react"
 import { checkAchievementsAfterWorkout } from '@/lib/utils/checkAchievements'
+import { MuscleGroupSelectionTip, SetOfDayTip, DropsetTip, WorkoutFeelingTip, WeightTrackingTip, WorkoutPhotoTip } from '@/components/tips/WorkoutTips'
 
 interface Set {
   weight?: number | null;
@@ -633,6 +634,7 @@ export default function NewWorkoutPage() {
             <Label htmlFor={`sotd-${index}`}>
               <Star className="h-4 w-4 text-yellow-500" />
             </Label>
+            <SetOfDayTip />
           </div>
         </div>
         {set.isDropSet && (
@@ -696,36 +698,40 @@ export default function NewWorkoutPage() {
               <CardTitle>Choose Muscle Groups</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {muscleGroups.map((group) => (
-                  <Button
-                    key={group.name}
-                    onClick={() => toggleMuscleGroup(group.name)}
-                    variant={workout?.muscleGroups.includes(group.name) ? "default" : "outline"}
-                    className={`h-28 flex flex-col items-center justify-center gap-3 ${
-                      workout?.muscleGroups.includes(group.name) ? 'bg-blue-500 text-white' : ''
-                    }`}
+              <div className="space-y-4">
+                <Label className="text-lg font-semibold">Select Muscle Groups</Label>
+                <MuscleGroupSelectionTip />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {muscleGroups.map((group) => (
+                    <Button
+                      key={group.name}
+                      onClick={() => toggleMuscleGroup(group.name)}
+                      variant={workout?.muscleGroups.includes(group.name) ? "default" : "outline"}
+                      className={`h-28 flex flex-col items-center justify-center gap-3 ${
+                        workout?.muscleGroups.includes(group.name) ? 'bg-blue-500 text-white' : ''
+                      }`}
+                    >
+                      <Image 
+                        src={group.icon}
+                        alt={`${group.name} icon`}
+                        width={48}
+                        height={48}
+                        className="mb-1"
+                      />
+                      {group.name}
+                    </Button>
+                  ))}
+                </div>
+                <motion.div animate={buttonControls}>
+                  <Button 
+                    onClick={() => goToNextStep()} 
+                    className="w-full mt-4"
+                    disabled={workout?.muscleGroups.length === 0}
                   >
-                    <Image 
-                      src={group.icon}
-                      alt={`${group.name} icon`}
-                      width={48}
-                      height={48}
-                      className="mb-1"
-                    />
-                    {group.name}
+                    Next <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
-                ))}
+                </motion.div>
               </div>
-              <motion.div animate={buttonControls}>
-                <Button 
-                  onClick={() => goToNextStep()} 
-                  className="w-full mt-4"
-                  disabled={workout?.muscleGroups.length === 0}
-                >
-                  Next <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              </motion.div>
             </CardContent>
           </Card>
         )
@@ -901,6 +907,7 @@ export default function NewWorkoutPage() {
               <div className="border-t pt-4 mt-6">
                 <div className="space-y-4 flex flex-col items-center text-center">
                   <h3 className="text-lg font-medium">Have you tracked your weight today?</h3>
+                  <WeightTrackingTip />
                   <div className="flex gap-4">
                     <Button 
                       variant={showWeightInput ? "default" : "outline"}
@@ -980,6 +987,7 @@ export default function NewWorkoutPage() {
               >
                 How was your workout today?
               </motion.h2>
+              <WorkoutFeelingTip />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
                   { type: 'bad', icon: ThumbsDown, label: 'Challenging Day', description: 'Weights feeling heavy, struggled with sets', color: 'red' },
@@ -1047,6 +1055,7 @@ export default function NewWorkoutPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-col items-center space-y-4">
+                <WorkoutPhotoTip />
                 {imagePreview ? (
                   <div className="relative w-full h-64">
                     {imageError ? (
@@ -1315,7 +1324,9 @@ export default function NewWorkoutPage() {
                 <Label htmlFor={`edit-sotd-${index}`}>
                   <Star className="h-4 w-4 text-yellow-500" />
                 </Label>
+                <SetOfDayTip />
               </div>
+              <SetOfDayTip />
             </div>
             {set.isDropSet && (
               <div className="flex flex-wrap gap-2">
@@ -1552,6 +1563,13 @@ export default function NewWorkoutPage() {
     </DialogFooter>
   </DialogContent>
 </Dialog>
+
+{selectedExerciseId && currentExercise?.exercise_type === 'weights' && (
+  <div className="mt-4">
+    <DropsetTip />
+    {/* Rest of the exercise inputs */}
+  </div>
+)}
     </div>
   )
 }

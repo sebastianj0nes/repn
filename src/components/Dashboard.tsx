@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, ChartBar, TrendingUp, LogOut, Plus, Zap, Moon, Utensils, Battery, Flame, Target, ChevronRight } from "lucide-react"
+import { Dumbbell, ChartBar, TrendingUp, LogOut, Plus, Zap, Moon, Utensils, Battery, Flame, Target, ChevronRight, Info } from "lucide-react"
 import { UserContext } from '@/app/UserContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
@@ -153,6 +153,25 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2, delay: 0.4 }}
+        className="mb-6"
+      >
+        <Link href="/tips">
+          <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 transition-colors">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Info className="h-5 w-5 text-primary" />
+                <span className="font-medium">View Training Tips</span>
+              </div>
+              <ChevronRight className="h-5 w-5 text-primary" />
+            </CardContent>
+          </Card>
+        </Link>
       </motion.div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
