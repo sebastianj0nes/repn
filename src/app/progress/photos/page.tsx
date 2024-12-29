@@ -20,9 +20,33 @@ export default function PhotoLibraryPage() {
     const from = pageParam * ITEMS_PER_PAGE
     const to = from + ITEMS_PER_PAGE - 1
 
+    const prefetchNextPage = async () => {
+      const nextFrom = (pageParam + 1) * ITEMS_PER_PAGE
+      const nextTo = nextFrom + ITEMS_PER_PAGE - 1
+      
+      const { data: nextData } = await supabase
+        .from('workouts')
+        .select('id, image_url')
+        .eq('user_id', session?.user.id)
+        .not('image_url', 'is', null)
+        .order('date', { ascending: false })
+        .range(nextFrom, nextTo)
+
+      if (nextData) {
+        nextData.forEach(async (workout) => {
+          if (workout.image_url) {
+            await supabase
+              .storage
+              .from('users-workout-img')
+              .createSignedUrl(workout.image_url, 60 * 60)
+          }
+        })
+      }
+    }
+
     const { data, error } = await supabase
       .from('workouts')
-      .select('*')
+      .select('id, image_url, date, user_weight')
       .eq('user_id', session?.user.id)
       .not('image_url', 'is', null)
       .order('date', { ascending: false })
@@ -30,7 +54,6 @@ export default function PhotoLibraryPage() {
 
     if (error) throw error
 
-    // Process all signed URLs in parallel
     const photosWithUrls = await Promise.all(
       data.map(async (workout) => {
         if (workout.image_url) {
@@ -47,6 +70,8 @@ export default function PhotoLibraryPage() {
         return workout
       })
     )
+
+    prefetchNextPage()
 
     return {
       photos: photosWithUrls,
