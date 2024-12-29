@@ -124,7 +124,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.2, delay: 0.3 }}
-        className="mb-6"
+        className="mb-2"
       >
         <Card className={`bg-gradient-to-br ${colorClasses[colorIndex]} text-white overflow-hidden`}>
           <CardContent className="p-6">

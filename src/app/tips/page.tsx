@@ -68,7 +68,9 @@ export default function TipsPage() {
         ).map(([category, categoryTips]) => (
           <div key={category}>
             <h2 className="text-lg font-semibold capitalize mb-3 flex items-center gap-2">
-              {categoryIcons[category] && createElement(categoryIcons[category], { className: "h-5 w-5" })}
+              {categoryIcons[category] && createElement(categoryIcons[category], { 
+                className: "h-8 w-8"
+              })}
               {category}
             </h2>
             <div className="grid gap-3">
@@ -88,7 +90,7 @@ export default function TipsPage() {
                         {tip.icon in Icons && 
                           createElement(
                             Icons[tip.icon as keyof typeof Icons] as React.ComponentType<any>, 
-                            { className: "h-5 w-5 text-blue-500 mt-1" }
+                            { className: "h-7 w-7 text-blue-500 mt-1" }
                           )
                         }
                         <div>
@@ -115,7 +117,7 @@ export default function TipsPage() {
               Reset All Tips
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-2">
-              This will make all tips visible again, including ones you`&apos;`ve previously dismissed. 
+              This will make all tips visible again, including ones you&apos;ve previously dismissed. 
               You`&apos;`ll start seeing tips and help messages as if you were a new user.
             </DialogDescription>
           </DialogHeader>

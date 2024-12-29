@@ -48,7 +48,7 @@ export const SetOfDayTip = () => {
         <div>
           <p className="text-sm font-medium mb-1">Quick Tip ⭐</p>
           <p className="text-xs text-gray-200">
-            Mark your best set with the star icon. The `&apos;`best`&apos;` set is up to you, it doesn`&apos;`t have to be the heaviest set! 
+            Mark your best set with the star icon. The &apos;best&apos; set is up to you, it doesn&apos;t have to be the heaviest set! 
           </p>
         </div>
       </div>
