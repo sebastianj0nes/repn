@@ -124,6 +124,23 @@ export default function ProgressPage() {
     return emojiMap[feeling as keyof typeof emojiMap] || <Meh className="h-10 w-10 text-secondary" />
   }
 
+  const formatSotd = (sotd: string) => {
+    if (!sotd) return 'None recorded';
+    
+    // Split the sotd string which is typically in format "Exercise Name: weight x reps" or "Exercise Name: reps"
+    const [exerciseName, details] = sotd.split(':').map(s => s.trim());
+    
+    if (!details) return sotd; // Return original if not in expected format
+    
+    // Check if the details include 'x' which indicates weight and reps format
+    if (details.includes('x')) {
+      return sotd; // Return original format for weight exercises
+    } else {
+      // For bodyweight/time exercises, just return the exercise name and value
+      return sotd;
+    }
+  }
+
   const workoutDetail = selectedDate ? workoutDetails[selectedDate.toISOString().split('T')[0]] : null
 
   if (!session?.user) {
@@ -243,7 +260,7 @@ export default function ProgressPage() {
                             </motion.div>
                           )}
                           <div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-                            <strong>Set of the day:</strong> {workoutDetail.sotd}
+                            <strong>Set of the day:</strong> {formatSotd(workoutDetail.sotd)}
                           </div>
                         </div>
                         <div className="w-full">
