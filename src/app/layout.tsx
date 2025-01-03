@@ -6,6 +6,8 @@ import Providers from '@/components/Providers'
 import { Toaster } from "@/components/ui/toaster"
 import { TipProvider } from '@/context/TipContext'
 import '@/app/globals.css'
+import { ImageHandler } from '@/lib/utils/imageHandler'
+import ImageCacheCleanup from '@/components/ImageCacheCleanup'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,6 +29,7 @@ export default function RootLayout({
         <Providers>
           <TipProvider>
             <AuthWrapper>
+              <ImageCacheCleanup />
               <main>{children}</main>
             </AuthWrapper>
           </TipProvider>

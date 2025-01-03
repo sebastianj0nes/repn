@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { checkAchievementsAfterWorkout } from '@/lib/utils/checkAchievements';
+import { ImageHandler } from '@/lib/utils/imageHandler'
 
 // Lucide Icons
 import { 
@@ -226,14 +227,14 @@ export default function LogPastWorkoutPage() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("Image upload triggered"); // Debug log
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Image upload triggered");
     
     const file = e.target.files?.[0];
-    console.log("Selected file:", file); // Debug log
+    console.log("Selected file:", file);
     
     if (!file) {
-      console.log("No file selected"); // Debug log
+      console.log("No file selected");
       return;
     }
 
@@ -253,29 +254,31 @@ export default function LogPastWorkoutPage() {
     }
 
     try {
-      setImage(file);
+      // Compress image before setting it
+      const compressedFile = await ImageHandler.compressImage(file);
+      setImage(compressedFile);
       
       // Create preview
       const reader = new FileReader();
       reader.onloadstart = () => {
-        console.log("Started reading file"); // Debug log
+        console.log("Started reading file");
       };
       
       reader.onerror = () => {
-        console.error("Error reading file:", reader.error); // Debug log
+        console.error("Error reading file:", reader.error);
         alert('Error reading file');
       };
       
       reader.onloadend = () => {
-        console.log("Finished reading file"); // Debug log
+        console.log("Finished reading file");
         if (reader.result) {
           setImagePreview(reader.result as string);
         }
       };
 
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressedFile); // Use compressed file for preview
     } catch (error) {
-      console.error("Error handling file:", error); // Debug log
+      console.error("Error handling file:", error);
       alert('Error handling file');
     }
   };

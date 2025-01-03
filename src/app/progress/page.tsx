@@ -10,6 +10,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/lib/database.types'
 import { UserContext } from '../UserContext'
 import Link from 'next/link'
+import { ImageHandler } from '@/lib/utils/imageHandler'
 
 export default function ProgressPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
@@ -25,15 +26,14 @@ export default function ProgressPage() {
 
   useEffect(() => {
     const fetchWorkouts = async () => {
-      if (!session?.user) return
+      if (!session?.user) return;
       
-      // Clear existing workout days and set loading state
-      setWorkoutDays([])
-      setIsLoading(true)
+      setWorkoutDays([]);
+      setIsLoading(true);
 
       try {
-        const startOfMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1)
-        const endOfMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0)
+        const startOfMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+        const endOfMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0);
 
         const { data, error } = await supabase
           .from('workouts')
@@ -47,33 +47,27 @@ export default function ProgressPage() {
           .eq('user_id', session.user.id)
           .gte('date', startOfMonth.toISOString())
           .lte('date', endOfMonth.toISOString())
-          .order('date', { ascending: false })
+          .order('date', { ascending: false });
 
-        if (error) throw error
+        if (error) throw error;
 
-        // Only update workout days after successful data fetch
-        const days = data.map(workout => workout.date.split('T')[0])
-        setWorkoutDays(days)
+        const days = data.map(workout => workout.date.split('T')[0]);
+        setWorkoutDays(days);
 
-        const details: Record<string, any> = {}
+        const details: Record<string, any> = {};
         for (const workout of data) {
-          const dateKey = workout.date.split('T')[0]
-          let imageUrl = null
-
+          const dateKey = workout.date.split('T')[0];
+          
+          // Get signed URL if image exists
+          let imageUrl = null;
           if (workout.image_url) {
             try {
-              const { data, error } = await supabase
-                .storage
-                .from('users-workout-img')
-                .createSignedUrl(workout.image_url, 60 * 60 * 24 * 7) // URL valid for 7 days
-
-              if (error) {
-                console.error('Error creating signed URL:', error)
-              } else if (data) {
-                imageUrl = data.signedUrl
+              const signedUrl = await ImageHandler.getSignedUrl(supabase, workout.image_url);
+              if (signedUrl) {
+                imageUrl = signedUrl;
               }
             } catch (error) {
-              console.error('Error creating signed URL:', error)
+              console.error('Error getting signed URL:', error);
             }
           }
 
@@ -90,24 +84,50 @@ export default function ProgressPage() {
                   ? JSON.parse(exercise.exercise_sets) 
                   : [])
             })),
-            image: imageUrl
-          }
+            image: imageUrl // Set the signed URL here
+          };
         }
-        console.log('Workout details:', details)
-        setWorkoutDetails(details)
+
+        setWorkoutDetails(details);
+        
         if (days.length > 0 && isInitialLoad) {
-          setSelectedDate(new Date(days[0]))
-          setIsInitialLoad(false)
+          setSelectedDate(new Date(days[0]));
+          setIsInitialLoad(false);
         }
       } catch (error) {
-        console.error('Error fetching workouts:', error)
+        console.error('Error fetching workouts:', error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
     fetchWorkouts()
   }, [session?.user, supabase, visibleMonth])
+
+  // Add this effect to handle image loading when a date is selected
+  useEffect(() => {
+    const loadSelectedWorkoutImage = async () => {
+      if (selectedDate && workoutDetails) {
+        const dateKey = selectedDate.toISOString().split('T')[0]
+        const workout = workoutDetails[dateKey]
+        
+        if (workout && workout.image_url) {
+          const signedUrl = await ImageHandler.getSignedUrl(supabase, workout.image_url)
+          if (signedUrl) {
+            setWorkoutDetails(prev => ({
+              ...prev,
+              [dateKey]: {
+                ...prev[dateKey],
+                image: signedUrl
+              }
+            }))
+          }
+        }
+      }
+    }
+
+    loadSelectedWorkoutImage()
+  }, [selectedDate, workoutDetails, supabase])
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })

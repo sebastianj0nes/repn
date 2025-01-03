@@ -35,6 +35,7 @@ import {
 } from "@phosphor-icons/react"
 import { checkAchievementsAfterWorkout } from '@/lib/utils/checkAchievements'
 import { MuscleGroupSelectionTip, SetOfDayTip, DropsetTip, WorkoutFeelingTip, WeightTrackingTip, WorkoutPhotoTip } from '@/components/tips/WorkoutTips'
+import { ImageHandler } from '@/lib/utils/imageHandler'
 
 interface Set {
   weight?: number | null;
@@ -326,31 +327,37 @@ export default function NewWorkoutPage() {
     goToNextStep();
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0]
-      setImage(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        const result = reader.result as string
-        if (result.startsWith('data:image')) {
-          setImagePreview(result)
-          setImageError(null)
-          localStorage.setItem('workoutImage', result)
-        } else {
-          setImageError('Invalid image format')
-          setImagePreview(null)
-          localStorage.removeItem('workoutImage')
-        }
+      try {
+        const file = event.target.files[0];
+        
+        // Add compression before setting the image
+        const compressedFile = await ImageHandler.compressImage(file);
+        setImage(compressedFile);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          if (result.startsWith('data:image')) {
+            setImagePreview(result);
+            setImageError(null);
+            localStorage.setItem('workoutImage', result);
+          } else {
+            setImageError('Invalid image format');
+            setImagePreview(null);
+            localStorage.removeItem('workoutImage');
+          }
+        };
+        reader.readAsDataURL(compressedFile); // Use compressed file for preview
+      } catch (error) {
+        console.error('Error handling image:', error);
+        setImageError('Error processing image');
+        setImagePreview(null);
+        localStorage.removeItem('workoutImage');
       }
-      reader.onerror = () => {
-        setImageError('Error reading file')
-        setImagePreview(null)
-        localStorage.removeItem('workoutImage')
-      }
-      reader.readAsDataURL(file)
     }
-  }
+  };
 
   const handleTakePhoto = () => {
     if (cameraInputRef.current) {
