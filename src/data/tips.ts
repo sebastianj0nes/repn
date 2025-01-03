@@ -10,7 +10,7 @@ export const tips: Tip[] = [
   {
     id: 'muscle-group-selection',
     title: 'Selecting Muscle Groups',
-    description: 'Select all muscle groups you plan to work out today before continuing. You can choose multiple groups for a single workout session!',
+    description: 'Select all muscle groups you plan to work out today.',
     category: 'workout',
     icon: 'Dumbbell'
   },
@@ -34,13 +34,6 @@ export const tips: Tip[] = [
     description: 'Your workout rating helps track patterns in your performance. Be honest - even challenging days provide valuable insights!',
     category: 'workout',
     icon: 'ThumbsUp'
-  },
-  {
-    id: 'exercise-type',
-    title: 'Exercise Types',
-    description: 'Choose between weights, bodyweight, or timed exercises. Each type has a specific tracking method to accurately log your progress.',
-    category: 'general',
-    icon: 'ListChecks'
   },
   {
     id: 'weight-tracking',

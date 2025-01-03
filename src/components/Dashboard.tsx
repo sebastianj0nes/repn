@@ -124,7 +124,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.2, delay: 0.3 }}
-        className="mb-2"
+        className="mb-6"
       >
         <Card className={`bg-gradient-to-br ${colorClasses[colorIndex]} text-white overflow-hidden`}>
           <CardContent className="p-6">
@@ -155,25 +155,6 @@ export default function Dashboard() {
         </Card>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2, delay: 0.4 }}
-        className="mb-6"
-      >
-        <Link href="/tips">
-          <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 transition-colors">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Info className="h-5 w-5 text-primary" />
-                <span className="font-medium">View Training Tips</span>
-              </div>
-              <ChevronRight className="h-5 w-5 text-primary" />
-            </CardContent>
-          </Card>
-        </Link>
-      </motion.div>
-
       <div className="grid grid-cols-2 gap-4 mb-6">
         <motion.div
           whileHover={{ scale: 1.05 }}
@@ -199,6 +180,26 @@ export default function Dashboard() {
           </Link>
         </motion.div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2, delay: 0.4 }}
+        className="mb-6"
+      >
+        <Link href="/tips">
+          <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 transition-colors">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Info className="h-5 w-5 text-primary" />
+                <span className="font-medium">View Training Tips</span>
+              </div>
+              <ChevronRight className="h-5 w-5 text-primary" />
+            </CardContent>
+          </Card>
+        </Link>
+
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0 }}

@@ -23,7 +23,7 @@ export const MuscleGroupSelectionTip = () => {
         <div>
           <p className="text-sm font-medium mb-1">Quick Tip 💪</p>
           <p className="text-xs text-gray-200">
-            Select all muscle groups you plan to work out today before continuing. You can choose multiple groups for a single workout session!
+            Select all muscle groups you plan to work out today.
           </p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export const SetOfDayTip = () => {
         <div>
           <p className="text-sm font-medium mb-1">Quick Tip ⭐</p>
           <p className="text-xs text-gray-200">
-            Mark your best set with the star icon. The &apos;best&apos; set is up to you, it doesn&apos;t have to be the heaviest set! 
+            Mark your best set of the day with the star icon. <br/> The &apos;best&apos; set is up to you, it doesn&apos;t have to be the heaviest set! 
           </p>
         </div>
       </div>
@@ -113,23 +113,20 @@ export const WorkoutFeelingTip = () => {
 }
 
 export const WeightTrackingTip = () => {
-  const { showTip, isDismissed } = useTip()
+  const { showTip } = useTip()
 
   useEffect(() => {
-    // Only show after workout feeling tip has been dismissed
-    if (isDismissed('workout-feeling')) {
-      const timer = setTimeout(() => {
-        showTip('weight-tracking')
-      }, 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [showTip, isDismissed])
+    const timer = setTimeout(() => {
+      showTip('weight-tracking')
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [showTip])
 
   return (
     <Tip id="weight-tracking" position="bottom" className="max-w-[300px]">
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2 px-2">
         <Scale className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
-        <div>
+        <div className="flex-1">
           <p className="text-sm font-medium mb-1">Quick Tip 📊</p>
           <p className="text-xs text-gray-200">
             Optional: Track your body weight to see how it changes with your workouts!
