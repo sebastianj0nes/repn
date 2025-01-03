@@ -531,17 +531,25 @@ export default function NewWorkoutPage() {
             exercise.sets.map((set, setIndex) => (
               <div key={setIndex} className="flex justify-between items-center mb-2">
                 <span>Set {setIndex + 1}:</span>
-                {exercise.exercise_type === 'weights' && (
-                  <span>{set.weight} kg x {set.reps} reps</span>
-                )}
-                {exercise.exercise_type === 'bodyweight' && (
-                  <span>{set.reps} reps</span>
-                )}
-                {exercise.exercise_type === 'time' && (
-                  <span>{set.duration} seconds</span>
-                )}
-                {set.isDropSet && <Badge>Dropset</Badge>}
-                {set.isSetOfTheDay && <Badge>Set of the Day</Badge>}
+                <div className="flex items-center gap-2">
+                  <span>
+                    {exercise.exercise_type === 'weights' && (
+                      `${set.weight} kg x ${set.reps} reps`
+                    )}
+                    {exercise.exercise_type === 'bodyweight' && (
+                      `${set.reps} reps`
+                    )}
+                    {exercise.exercise_type === 'time' && (
+                      `${set.duration} seconds`
+                    )}
+                  </span>
+                  {set.isDropSet && <Badge>Dropset</Badge>}
+                  {set.isSetOfTheDay && (
+                    <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
+                      <Star className="h-3 w-3 mr-1" /> Set of the Day
+                    </Badge>
+                  )}
+                </div>
               </div>
             ))
           )}
@@ -549,6 +557,24 @@ export default function NewWorkoutPage() {
       </Card>
     ))
   }
+
+  const repeatLastSet = () => {
+    setCurrentExercise(prev => {
+      const lastSet = prev.sets[prev.sets.length - 1];
+      if (!lastSet) return prev;
+
+      // Create a new set with the same values as the last set
+      const newSet = {
+        ...lastSet,
+        isSetOfTheDay: false // Reset SOTD as there can only be one
+      };
+
+      return {
+        ...prev,
+        sets: [...prev.sets, newSet]
+      };
+    });
+  };
 
   const renderSetInputs = (set: Set, index: number) => {
     return (
@@ -673,6 +699,18 @@ export default function NewWorkoutPage() {
             </div>
           </div>
         )}
+        {isLastSetComplete(set) && index === currentExercise.sets.length - 1 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={repeatLastSet}
+            className="w-full flex items-center justify-center gap-2 text-sm border-dashed"
+          >
+            <Plus className="h-3 w-3" />
+            Repeat Last Set
+          </Button>
+        )}
         {setErrors[index] && (
           <Alert variant="destructive" className="mt-2 w-full">
             <AlertCircle className="h-4 w-4" />
@@ -682,6 +720,21 @@ export default function NewWorkoutPage() {
         )}
       </div>
     );
+  };
+
+  const isLastSetComplete = (set: Set): boolean => {
+    if (!set) return false;
+    
+    switch (currentExercise.exercise_type) {
+      case 'weights':
+        return !!(set.weight && set.reps);
+      case 'bodyweight':
+        return !!set.reps;
+      case 'time':
+        return !!set.duration;
+      default:
+        return false;
+    }
   };
 
   const renderStep = () => {
