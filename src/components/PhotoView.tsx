@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence, PanInfo } from 'framer-motion'
-import { ChevronLeft, ChevronRight, X, Calendar, Scale } from 'lucide-react'
+import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, useAnimation } from 'framer-motion'
+import { X, Calendar, Scale } from 'lucide-react'
 import { format } from 'date-fns'
 import { Photo } from '@/types/photo'
 
@@ -16,6 +16,11 @@ export default function PhotoView({ photos, initialPhotoIndex, onClose }: PhotoV
   const [currentIndex, setCurrentIndex] = useState(initialPhotoIndex)
   const currentPhoto = photos[currentIndex]
 
+  const y = useMotionValue(0)
+  const opacity = useTransform(y, [-200, 0, 200], [0.2, 1, 0.2])
+  const scale = useTransform(y, [-200, 0, 200], [0.8, 1, 0.8])
+  const controls = useAnimation()
+
   // Prevent background scrolling when modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -24,13 +29,37 @@ export default function PhotoView({ photos, initialPhotoIndex, onClose }: PhotoV
     }
   }, [])
 
-  const handleDragEnd = (event: any, info: PanInfo) => {
+  useEffect(() => {
+    const bottomNav = document.querySelector('nav');
+    if (bottomNav) bottomNav.style.display = 'none';
+    
+    return () => {
+      const bottomNav = document.querySelector('nav');
+      if (bottomNav) bottomNav.style.display = 'block';
+    };
+  }, []);
+
+  const handleDragEnd = async (event: any, info: PanInfo) => {
     const SWIPE_THRESHOLD = 50
-    if (info.offset.x < -SWIPE_THRESHOLD && currentIndex < photos.length - 1) {
-      setCurrentIndex(currentIndex + 1)
-    } else if (info.offset.x > SWIPE_THRESHOLD && currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1)
+    const VERTICAL_THRESHOLD = 100
+
+    if (Math.abs(info.offset.y) > VERTICAL_THRESHOLD) {
+      // Close on vertical swipe
+      await controls.start({ opacity: 0, scale: 0.8 })
+      onClose()
+      return
     }
+
+    if (Math.abs(info.offset.x) > SWIPE_THRESHOLD) {
+      if (info.offset.x < 0 && currentIndex < photos.length - 1) {
+        setCurrentIndex(currentIndex + 1)
+      } else if (info.offset.x > 0 && currentIndex > 0) {
+        setCurrentIndex(currentIndex - 1)
+      }
+    }
+
+    // Reset position if not closing
+    controls.start({ x: 0, y: 0 })
   }
 
   return (
@@ -38,9 +67,45 @@ export default function PhotoView({ photos, initialPhotoIndex, onClose }: PhotoV
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black z-50"
+      className="fixed inset-0 bg-black z-[100]"
+      onAnimationStart={() => {
+        const bottomNav = document.querySelector('nav');
+        if (bottomNav) bottomNav.style.display = 'none';
+      }}
+      onAnimationEnd={() => {
+        const bottomNav = document.querySelector('nav');
+        if (bottomNav && !document.querySelector('.fixed.inset-0.bg-black')) {
+          bottomNav.style.display = 'block';
+        }
+      }}
     >
-      <div className="h-full flex flex-col">
+      <AnimatePresence>
+        {currentIndex === initialPhotoIndex && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-x-0 bottom-32 flex justify-center items-center"
+          >
+            <motion.div
+              animate={{
+                x: [0, 20, 0],
+                opacity: [1, 0.7, 1],
+              }}
+              transition={{
+                duration: 2,
+                repeat: 2,
+                ease: "easeInOut",
+              }}
+              className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-medium"
+            >
+              Swipe to navigate
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="h-screen w-screen relative">
         {/* Info overlay */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -87,48 +152,35 @@ export default function PhotoView({ photos, initialPhotoIndex, onClose }: PhotoV
         </motion.div>
 
         {/* Main content */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={currentPhoto.id}
               className="w-full h-full flex items-center justify-center"
+              drag={true}
+              dragDirectionLock
+              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               onDragEnd={handleDragEnd}
-              onPanEnd={handleDragEnd}
-              dragElastic={0.1}
+              dragElastic={0.4}
+              style={{ y }}
+              animate={controls}
             >
               <motion.img
                 src={currentPhoto.signedUrl}
                 alt={`Photo from ${currentPhoto.date}`}
-                className="max-h-[100vh] max-w-[100vw] object-contain"
+                className="w-full h-full object-contain"
+                style={{ opacity, scale }}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
+                transition={{
+                  type: "spring",
+                  damping: 20,
+                  stiffness: 300
+                }}
               />
             </motion.div>
           </AnimatePresence>
-
-          {/* Navigation */}
-          <div className="absolute inset-x-0 flex justify-between px-4 pointer-events-none">
-            {currentIndex > 0 && (
-              <motion.button
-                onClick={() => setCurrentIndex(currentIndex - 1)}
-                className="text-white/80 hover:text-white pointer-events-auto p-2"
-                whileTap={{ scale: 0.9 }}
-              >
-                <ChevronLeft size={36} />
-              </motion.button>
-            )}
-            {currentIndex < photos.length - 1 && (
-              <motion.button
-                onClick={() => setCurrentIndex(currentIndex + 1)}
-                className="text-white/80 hover:text-white pointer-events-auto p-2"
-                whileTap={{ scale: 0.9 }}
-              >
-                <ChevronRight size={36} />
-              </motion.button>
-            )}
-          </div>
         </div>
       </div>
     </motion.div>
