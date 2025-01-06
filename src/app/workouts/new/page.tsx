@@ -117,6 +117,7 @@ export default function NewWorkoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showWeightInput, setShowWeightInput] = useState(false);
   const [showSOTDWarning, setShowSOTDWarning] = useState(false);
+  const [showMultipleSOTDWarning, setShowMultipleSOTDWarning] = useState(false);
 
   const totalSteps = 5 // Total number of steps in the workout process
 
@@ -220,6 +221,22 @@ export default function NewWorkoutPage() {
   }
 
   const handleSetChange = (index: number, field: keyof Set, value: string | boolean) => {
+    // If trying to set a new SOTD, check if one already exists
+    if (field === 'isSetOfTheDay' && value === true) {
+      // Check current exercise sets
+      const hasSOTDInCurrentExercise = currentExercise.sets.some(set => set.isSetOfTheDay);
+      
+      // Check other exercises
+      const hasSOTDInOtherExercises = workout?.exercises.some(exercise =>
+        exercise.sets.some(set => set.isSetOfTheDay)
+      );
+
+      if (hasSOTDInCurrentExercise || hasSOTDInOtherExercises) {
+        setShowMultipleSOTDWarning(true);
+        return; // Don't proceed with the change
+      }
+    }
+
     setCurrentExercise(prev => {
       const newSets = [...prev.sets];
       if (field === 'duration' || field === 'weight' || field === 'reps') {
@@ -227,20 +244,12 @@ export default function NewWorkoutPage() {
       } else {
         newSets[index] = { ...newSets[index], [field]: value };
       }
-      if (field === 'isDropSet' && value === true) {
-        newSets[index].dropsetWeight = '';
-        newSets[index].dropsetReps = '';
-      }
-      if (field === 'isSetOfTheDay' && value === true) {
-        newSets.forEach((set, i) => {
-          if (i !== index) set.isSetOfTheDay = false
-        })
-      }
       return { ...prev, sets: newSets }
-    })
+    });
+    
     // Clear error when user starts typing
     setSetErrors(prev => ({ ...prev, [index]: '' }));
-  }
+  };
 
   const removeSet = (index: number) => {
     setCurrentExercise(prev => ({
@@ -1624,12 +1633,28 @@ export default function NewWorkoutPage() {
   </DialogContent>
 </Dialog>
 
-{selectedExerciseId && currentExercise?.exercise_type === 'weights' && (
-  <div className="mt-4">
-    <DropsetTip />
-    {/* Rest of the exercise inputs */}
-  </div>
-)}
+<Dialog open={showMultipleSOTDWarning} onOpenChange={setShowMultipleSOTDWarning}>
+  <DialogContent className="bg-white text-black border border-gray-300 p-6 rounded-lg shadow-lg">
+    <DialogHeader>
+      <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center">
+        <Star className="h-6 w-6 text-yellow-500 mr-2" />
+        Set of the Day Already Selected
+      </DialogTitle>
+      <DialogDescription className="text-gray-600 mt-2">
+        You can only have one &quot;Set of the Day&quot;. Please uncheck the existing Set of the Day before selecting a new one.
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter className="mt-6">
+      <Button
+        type="button"
+        onClick={() => setShowMultipleSOTDWarning(false)}
+        className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white"
+      >
+        Got it
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
     </div>
   )
 }
