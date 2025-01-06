@@ -14,6 +14,8 @@ interface PhotoViewProps {
 
 export default function PhotoView({ photos, initialPhotoIndex, onClose }: PhotoViewProps) {
   const [currentIndex, setCurrentIndex] = useState(initialPhotoIndex)
+  const [hasInteracted, setHasInteracted] = useState(false)
+  const [hasSeenHint, setHasSeenHint] = useState(true)
   const currentPhoto = photos[currentIndex]
 
   const y = useMotionValue(0)
@@ -39,7 +41,19 @@ export default function PhotoView({ photos, initialPhotoIndex, onClose }: PhotoV
     };
   }, []);
 
+  // Check localStorage on mount
+  useEffect(() => {
+    const hasSeenPhotoHint = localStorage.getItem('hasSeenPhotoHint')
+    setHasSeenHint(!!hasSeenPhotoHint)
+    
+    if (!hasSeenPhotoHint) {
+      localStorage.setItem('hasSeenPhotoHint', 'true')
+    }
+  }, [])
+
   const handleDragEnd = async (event: any, info: PanInfo) => {
+    if (!hasInteracted) setHasInteracted(true)
+    
     const SWIPE_THRESHOLD = 50
     const VERTICAL_THRESHOLD = 100
 
@@ -80,26 +94,27 @@ export default function PhotoView({ photos, initialPhotoIndex, onClose }: PhotoV
       }}
     >
       <AnimatePresence>
-        {currentIndex === initialPhotoIndex && (
+        {!hasInteracted && !hasSeenHint && currentIndex === initialPhotoIndex && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-x-0 bottom-32 flex justify-center items-center"
+            className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center pointer-events-none"
           >
             <motion.div
               animate={{
-                x: [0, 20, 0],
-                opacity: [1, 0.7, 1],
+                y: [0, -10, 0],
               }}
               transition={{
-                duration: 2,
-                repeat: 2,
+                duration: 1.5,
+                repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-medium"
+              className="bg-black/60 backdrop-blur-sm px-6 py-3 rounded-full"
             >
-              Swipe to navigate
+              <span className="text-white text-lg font-medium">
+                Swipe left or right to navigate
+              </span>
             </motion.div>
           </motion.div>
         )}
