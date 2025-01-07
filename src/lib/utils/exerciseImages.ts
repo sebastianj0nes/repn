@@ -1,5 +1,5 @@
 const backExercises = {
-  'Pull-Ups': '/exercises/pullUp.gif',
+  'Pull-Ups': '/exercises/pullup.gif',
   'Assisted Pull-ups': '/exercises/assistedPullUp.gif',
   'Lat Pulldowns': '/exercises/latPulldown.gif',
   'Bent-Over Rows': '/exercises/barbellRow.gif',
