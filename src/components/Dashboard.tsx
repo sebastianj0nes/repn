@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, ChartBar, TrendingUp, LogOut, Plus, Zap, Moon, Utensils, Battery, Flame, Target, ChevronRight, Info } from "lucide-react"
+import { Dumbbell, ChartBar, TrendingUp, LogOut, Plus, Zap, Moon, Utensils, Battery, Flame, Target, ChevronRight, Info, ChartBarIcon, ListIcon } from "lucide-react"
 import { UserContext } from '@/app/UserContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
@@ -155,27 +155,48 @@ export default function Dashboard() {
         </Card>
       </motion.div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
         >
           <Link href="/progress">
-            <Card className="text-center p-4 hover:bg-accent transition-colors duration-300">
-              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <p className="text-sm font-medium">Progress</p>
+            <Card className="h-full hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                <ChartBarIcon className="h-8 w-8 mb-2 text-primary" />
+                <h3 className="font-semibold">Progress</h3>
+              </CardContent>
             </Card>
           </Link>
         </motion.div>
 
         <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Link href="/exercises">
+            <Card className="h-full hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                <Dumbbell className="h-8 w-8 mb-2 text-primary" />
+                <h3 className="font-semibold">Exercises</h3>
+              </CardContent>
+            </Card>
+          </Link>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
         >
           <Link href="/stats">
-            <Card className="text-center p-4 hover:bg-accent transition-colors duration-300">
-              <ChartBar className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <p className="text-sm font-medium">Stats</p>
+            <Card className="h-full hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                <ListIcon className="h-8 w-8 mb-2 text-primary" />
+                <h3 className="font-semibold">Stats</h3>
+              </CardContent>
             </Card>
           </Link>
         </motion.div>
