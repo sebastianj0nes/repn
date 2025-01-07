@@ -16,6 +16,7 @@ interface ExerciseCardProps {
     muscle_group: string
     image_url: string
     exercise_type: 'weights' | 'bodyweight' | 'time'
+    tier: ExerciseTier
   }
   stats?: {
     total_sessions: number
@@ -40,9 +41,21 @@ export function ExerciseCard({ exercise, stats }: ExerciseCardProps) {
         onClick={() => setIsDialogOpen(true)}
         className="cursor-pointer"
       >
-        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-          <CardContent className="p-0">
-            <div className="relative h-48 w-full bg-white flex items-center justify-center">
+        <Card 
+          className={`
+            overflow-hidden transition-all duration-300 hover:scale-105 h-[300px] flex flex-col
+            ${exercise.tier === 'S' 
+              ? 'bg-gradient-to-br from-[#FFD700] via-[#FFF6A3] to-[#FFD700] relative animate-border-flow' 
+              : exercise.tier === 'A'
+              ? 'bg-gradient-to-br from-[#4ade80] via-[#86efac] to-[#4ade80] relative' 
+              : exercise.tier === 'B'
+              ? 'bg-gradient-to-br from-[#60a5fa] via-[#93c5fd] to-[#60a5fa] relative'
+              : 'bg-card'
+            }
+          `}
+        >
+          <CardContent className="p-0 flex flex-col h-full">
+            <div className="relative h-48 w-full flex items-center justify-center bg-white">
               {(exerciseImage || exercise.image_url) ? (
                 <Image
                   src={exerciseImage || exercise.image_url}
@@ -68,11 +81,70 @@ export function ExerciseCard({ exercise, stats }: ExerciseCardProps) {
                 {exercise.exercise_type === 'time' && <Timer className="w-4 h-4 mr-1" />}
                 {exercise.exercise_type}
               </Badge>
+              {exercise.tier === 'S' && (
+                <Badge 
+                  className="absolute bottom-2 left-2 z-10 font-bold"
+                  style={{
+                    background: 'linear-gradient(45deg, #FFD700, #FFB700)',
+                    border: '1px solid #FFB700',
+                    color: '#000',
+                    textShadow: '0 1px 1px rgba(255,255,255,0.5)'
+                  }}
+                >
+                  S TIER
+                </Badge>
+              )}
+              {exercise.tier === 'A' && (
+                <Badge 
+                  className="absolute bottom-2 left-2 z-10 font-bold"
+                  style={{
+                    background: 'linear-gradient(45deg, #4ade80, #22c55e)',
+                    border: '1px solid #22c55e',
+                    color: '#fff',
+                    textShadow: '0 1px 1px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  A TIER
+                </Badge>
+              )}
+              {exercise.tier === 'B' && (
+                <Badge 
+                  className="absolute bottom-2 left-2 z-10 font-bold"
+                  style={{
+                    background: 'linear-gradient(45deg, #60a5fa, #3b82f6)',
+                    border: '1px solid #3b82f6',
+                    color: '#fff',
+                    textShadow: '0 1px 1px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  B TIER
+                </Badge>
+              )}
             </div>
             
-            <div className="p-4 bg-gray-100 text-center">
-              <h3 className="font-semibold text-lg mb-1">{exercise.name}</h3>
-              <p className="text-sm text-muted-foreground">{exercise.muscle_group}</p>
+            <div className={`
+              p-4 text-center flex-1 flex flex-col justify-between
+              ${exercise.tier === 'S' 
+                ? 'bg-gradient-to-b from-white/90 to-white/80 text-yellow-900' 
+                : exercise.tier === 'A'
+                ? 'bg-gradient-to-b from-white/90 to-white/80 text-green-900'
+                : exercise.tier === 'B'
+                ? 'bg-gradient-to-b from-white/90 to-white/80 text-blue-900'
+                : 'bg-gray-100'
+              }
+            `}>
+              <div>
+                <h3 className="font-semibold text-lg">{exercise.name}</h3>
+                <p className={`text-sm -mt-0.5 ${
+                  exercise.tier === 'A' 
+                    ? 'text-green-800/80' 
+                    : exercise.tier === 'B'
+                    ? 'text-blue-800/80'
+                    : 'text-muted-foreground'
+                }`}>
+                  {exercise.muscle_group}
+                </p>
+              </div>
               {stats && (
                 <div className="mt-2 space-y-1 text-sm text-muted-foreground">
                   <p>Sessions: {stats.total_sessions}</p>

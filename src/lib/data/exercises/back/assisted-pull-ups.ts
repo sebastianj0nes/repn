@@ -4,33 +4,33 @@ export const assistedPullUps: ExerciseTemplate = {
   id: 'assisted-pull-ups',
   name: 'Assisted Pull-ups',
   muscle_group: 'Back',
-  exercise_type: 'bodyweight',
-  tier: 'A',
-  overview: 'Assisted pull-ups are an excellent progression exercise for developing back strength and working towards unassisted pull-ups. The assistance mechanism reduces your effective body weight, making the movement more manageable while maintaining proper form.',
+  exercise_type: 'weights',
+  tier: 'B',
+  overview: 'A progression exercise that helps develop pull-up strength using counterweight assistance, perfect for building towards unassisted pull-ups.',
   keyPoints: [
-    'Grip the bar slightly wider than shoulder width',
-    'Keep core engaged throughout movement',
-    'Pull shoulder blades down and back',
-    'Focus on pulling with your back, not arms'
+    'Maintain controlled movement throughout',
+    'Focus on full range of motion',
+    'Keep core engaged',
+    'Drive elbows down and back'
   ],
   proTips: [
-    'Gradually decrease assistance weight over time',
-    'Practice slow negatives for strength building',
-    'Focus on squeezing your lats at the top',
-    'Maintain controlled descent'
+    'Gradually decrease assistance weight',
+    'Focus on eccentric (lowering) portion',
+    'Practice scapular pulls between sets',
+    'Keep shoulders away from ears'
   ],
   instructions: [
     'Select appropriate assistance weight',
-    'Grip bar with palms facing away',
+    'Grip bar slightly wider than shoulders',
     'Start from dead hang position',
-    'Pull up until chin clears the bar',
+    'Pull up until chin clears bar',
     'Lower with control to starting position'
   ],
   commonMistakes: [
-    'Using too much assistance',
+    'Relying too heavily on assistance',
     'Swinging or using momentum',
-    'Not completing full range of motion',
-    'Relying too much on arms'
+    'Incomplete range of motion',
+    'Not engaging lats properly'
   ],
   targetMuscles: {
     primary: ['Latissimus Dorsi', 'Rhomboids'],

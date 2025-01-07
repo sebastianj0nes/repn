@@ -4,36 +4,36 @@ export const assistedDips: ExerciseTemplate = {
   id: 'assisted-dips',
   name: 'Assisted Dips',
   muscle_group: 'Tricep',
-  exercise_type: 'bodyweight',
-  tier: 'A',
-  overview: 'Assisted dips are a great progression exercise for building chest, tricep, and shoulder strength while working towards unassisted dips.',
+  exercise_type: 'weights',
+  tier: 'B',
+  overview: 'A progression exercise that helps build strength for full bodyweight dips while targeting the triceps.',
   keyPoints: [
-    'Set appropriate assistance weight',
-    'Keep chest slightly forward for chest focus',
-    'Lower until upper arms are parallel to ground',
-    'Maintain controlled movement throughout'
+    'Keep chest up',
+    'Elbows close to body',
+    'Control the descent',
+    'Full range of motion'
   ],
   proTips: [
-    'Gradually decrease assistance weight',
-    'Focus on full range of motion',
-    'Keep elbows tucked to protect shoulders',
-    'Practice scapular depression at top'
+    'Gradually reduce assistance',
+    'Focus on form over depth',
+    'Keep shoulders down',
+    'Practice lockout at top'
   ],
   instructions: [
-    'Step onto assistance platform and grip handles',
-    'Keep chest up and shoulders back',
-    'Lower body until upper arms are parallel',
-    'Push back up to starting position',
-    'Maintain tension throughout movement'
+    'Select appropriate assistance weight',
+    'Grip bars shoulder width',
+    'Lower body with control',
+    'Keep elbows tucked',
+    'Press back to start'
   ],
   commonMistakes: [
+    'Leaning too far forward',
+    'Flaring elbows',
     'Using too much assistance',
-    'Insufficient range of motion',
-    'Flaring elbows excessively',
-    'Rushing the movement'
+    'Shallow range of motion'
   ],
   targetMuscles: {
-    primary: ['Pectoralis Major', 'Triceps'],
-    secondary: ['Anterior Deltoids', 'Serratus Anterior']
+    primary: ['Triceps'],
+    secondary: ['Chest', 'Anterior Deltoids']
   }
 }; 

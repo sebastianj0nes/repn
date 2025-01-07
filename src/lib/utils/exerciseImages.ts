@@ -6,7 +6,7 @@ const backExercises = {
   'Single Arm Lat Pulldown': '/exercises/singlearmLatPulldown.gif',
   'Seated Cable Rows': '/exercises/cableRow.gif',
   'Shrugs': '/exercises/shrugs.gif',
-  'Deadlifts': '/exercises/deadlift.png',
+  'Deadlifts': '/exercises/deadlift.gif',
 } as const;
 
 const chestExercises = {
@@ -14,7 +14,7 @@ const chestExercises = {
   'Bench Press - Dumbbell': '/exercises/dumbbellBench.gif',
   'Incline Bench Press': '/exercises/inclineBenchPress.gif',
   'Decline Bench Press': '/exercises/declineBench.gif',
-  'Dumbell Flyes': '/exercises/dumbellFly.gif',
+  'Dumbbell Flyes': '/exercises/dumbellFly.gif',
   'Push-Ups': '/exercises/pushup.gif',
   'Cable Flyes': '/exercises/cableFly.gif',
 } as const;

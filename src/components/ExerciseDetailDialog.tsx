@@ -30,7 +30,17 @@ interface ExerciseDetailDialogProps {
 export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDetailDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white p-6 rounded-lg shadow-lg">
+      <DialogContent className={`
+        max-w-md p-6 rounded-lg shadow-lg
+        ${exercise.tier === 'S' 
+          ? 'bg-gradient-to-br from-yellow-400 via-yellow-200 to-yellow-400 border-2 border-yellow-500'
+          : exercise.tier === 'A'
+          ? 'bg-gradient-to-br from-green-400 via-green-200 to-green-400 border-2 border-green-500'
+          : exercise.tier === 'B'
+          ? 'bg-gradient-to-br from-blue-400 via-blue-200 to-blue-400 border-2 border-blue-500'
+          : 'bg-white'
+        }
+      `}>
         <button 
           onClick={onClose}
           className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none"
@@ -40,24 +50,37 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
 
         <DialogHeader className="mb-4">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-bold">{exercise.name}</DialogTitle>
+            <DialogTitle className={`
+              text-xl font-bold
+              ${exercise.tier === 'S' ? 'text-yellow-900' : ''}
+            `}>
+              {exercise.name}
+            </DialogTitle>
             <Badge 
               variant="outline" 
-              className="font-bold px-3 py-1"
-              style={{
-                backgroundColor: getTierColor(exercise.tier),
-                color: 'white',
-                borderColor: 'transparent'
-              }}
+              className={`
+                font-bold px-3 py-1
+                ${exercise.tier === 'S' 
+                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-transparent' 
+                  : ''}
+              `}
             >
-              Tier {exercise.tier}
+              {exercise.tier} TIER
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">{exercise.muscle_group}</p>
+          <p className={`
+            text-sm mt-1
+            ${exercise.tier === 'S' ? 'text-yellow-800' : 'text-muted-foreground'}
+          `}>
+            {exercise.muscle_group}
+          </p>
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh] pr-4">
-          <div className="relative h-48 w-full bg-white flex items-center justify-center mb-6 rounded-lg border">
+          <div className={`
+            relative h-48 w-full flex items-center justify-center mb-6 rounded-lg border
+            ${exercise.tier === 'S' ? 'bg-gradient-to-b from-white/90 to-white/80' : 'bg-white'}
+          `}>
             {exercise.image_url ? (
               <Image
                 src={exercise.image_url}
@@ -75,37 +98,51 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
           </div>
 
           <div className="space-y-6">
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <h3 className="font-semibold text-lg mb-3">Overview</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {exercise.overview}
-              </p>
-            </div>
-
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <h3 className="font-semibold text-lg mb-3">Key Points</h3>
-              <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-2">
-                {exercise.keyPoints.map((point, index) => (
-                  <li key={index}>{point}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <h3 className="font-semibold text-lg mb-3">Pro Tips</h3>
-              <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-2">
-                {exercise.proTips.map((tip, index) => (
-                  <li key={index}>{tip}</li>
-                ))}
-              </ul>
-            </div>
+            {['Overview', 'Key Points', 'Pro Tips'].map((section) => (
+              <div key={section} className={`
+                p-4 rounded-lg
+                ${exercise.tier === 'S' 
+                  ? 'bg-white/80 backdrop-blur-sm text-yellow-900' 
+                  : exercise.tier === 'A'
+                  ? 'bg-white/80 backdrop-blur-sm text-green-900'
+                  : exercise.tier === 'B'
+                  ? 'bg-white/80 backdrop-blur-sm text-blue-900'
+                  : 'bg-gray-100'
+                }
+              `}>
+                <h3 className="font-semibold text-lg mb-3">{section}</h3>
+                {section === 'Overview' && (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {exercise.overview}
+                  </p>
+                )}
+                {section === 'Key Points' && (
+                  <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-2">
+                    {exercise.keyPoints.map((point, index) => (
+                      <li key={index}>{point}</li>
+                    ))}
+                  </ul>
+                )}
+                {section === 'Pro Tips' && (
+                  <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-2">
+                    {exercise.proTips.map((tip, index) => (
+                      <li key={index}>{tip}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
           </div>
         </ScrollArea>
 
         <Button 
           onClick={() => console.log('Add to My Exercises:', exercise.name)}
-          className="w-full mt-6"
-          variant="default"
+          className={`
+            w-full mt-6
+            ${exercise.tier === 'S' 
+              ? 'bg-yellow-600 hover:bg-yellow-700 text-white' 
+              : ''}
+          `}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add to My Exercises

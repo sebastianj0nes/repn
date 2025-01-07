@@ -6,34 +6,34 @@ export const pullUps: ExerciseTemplate = {
   muscle_group: 'Back',
   exercise_type: 'bodyweight',
   tier: 'S',
-  overview: 'Pull-ups are one of the most effective upper body exercises, primarily targeting the latissimus dorsi while engaging multiple other muscle groups.',
+  overview: 'One of the most effective upper body exercises, developing exceptional back strength and overall pulling power.',
   keyPoints: [
-    'Start with a full hang, arms extended',
-    'Pull yourself up until chin clears the bar',
-    'Keep core engaged throughout movement',
-    'Lower with control to starting position'
+    'Start from dead hang position',
+    'Pull chin over bar',
+    'Keep core tight throughout',
+    'Control descent completely'
   ],
   proTips: [
-    'Focus on squeezing your lats',
-    'Avoid swinging or kipping',
-    'Use varied grip widths for different emphasis',
-    'Practice negative reps to build strength'
+    'Practice scapular pulls for better activation',
+    'Use different grip widths for variety',
+    'Add weight once mastered',
+    'Focus on quality over quantity'
   ],
   instructions: [
-    'Grip the bar slightly wider than shoulder width',
-    'Initiate the movement by depressing your shoulder blades',
-    'Drive your elbows down and back',
-    'Keep your core tight throughout the movement',
-    'Control the descent to maintain tension'
+    'Grip bar slightly wider than shoulders',
+    'Engage lats before pulling',
+    'Drive elbows down and back',
+    'Pull until chin clears bar',
+    'Lower with control to full extension'
   ],
   commonMistakes: [
-    'Using momentum to swing up',
+    'Kipping or swinging',
     'Not completing full range of motion',
-    'Failing to engage lats properly',
-    'Poor shoulder positioning'
+    'Using too much bicep',
+    'Rushing the negative portion'
   ],
   targetMuscles: {
-    primary: ['Latissimus Dorsi', 'Rhomboids'],
-    secondary: ['Biceps', 'Rear Deltoids', 'Core']
+    primary: ['Latissimus Dorsi', 'Teres Major'],
+    secondary: ['Biceps', 'Forearms', 'Core']
   }
 }; 

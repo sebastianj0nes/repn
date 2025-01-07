@@ -5,35 +5,35 @@ export const abRoller: ExerciseTemplate = {
   name: 'Ab Roller',
   muscle_group: 'Core',
   exercise_type: 'bodyweight',
-  tier: 'A',
-  overview: 'The ab roller is an advanced core exercise that targets the entire abdominal wall while engaging the lats, shoulders, and lower back as stabilizers.',
+  tier: 'S',
+  overview: 'A challenging core exercise that develops strength and stability throughout the entire midsection.',
   keyPoints: [
-    'Start on knees with roller directly under shoulders',
-    'Keep arms straight throughout movement',
-    'Engage core before initiating roll-out',
-    'Control the movement in both directions'
+    'Keep core engaged throughout',
+    'Maintain neutral spine',
+    'Control both out and in phases',
+    'Breathe steadily'
   ],
   proTips: [
-    'Begin with partial range of motion if new to the exercise',
-    'Focus on keeping lower back from arching',
-    'Exhale during the hardest part of the movement',
-    'Progress to standing position for advanced variation'
+    'Start on knees for progression',
+    'Use mat for knee comfort',
+    'Progress to standing slowly',
+    'Focus on controlled return'
   ],
   instructions: [
-    'Kneel on a mat with the ab roller in front of you',
-    'Grasp the handles with both hands, arms straight',
-    'Slowly roll forward, extending your body',
-    'Keep core tight throughout the movement',
-    'Use core strength to pull yourself back to start'
+    'Kneel with roller in front',
+    'Engage core tightly',
+    'Roll forward with straight arms',
+    'Extend as far as control allows',
+    'Pull back to start'
   ],
   commonMistakes: [
-    'Allowing lower back to sag',
-    'Rolling out too far too soon',
-    'Using momentum instead of control',
-    'Not maintaining core engagement'
+    'Sagging lower back',
+    'Rolling out too far',
+    'Using momentum',
+    'Holding breath'
   ],
   targetMuscles: {
     primary: ['Rectus Abdominis', 'Transverse Abdominis'],
-    secondary: ['Latissimus Dorsi', 'Anterior Deltoids', 'Core Stabilizers']
+    secondary: ['Obliques', 'Shoulders', 'Lats']
   }
 }; 

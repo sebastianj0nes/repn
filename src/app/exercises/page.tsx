@@ -11,6 +11,8 @@ import Image from 'next/image'
 import { DumbbellIcon } from 'lucide-react'
 import { ExerciseCard } from '@/components/ExerciseCard'
 import { getExerciseStats } from '@/lib/api/exercises'
+import { ExerciseTier } from '@/lib/types/exercise'
+import { getExerciseDetails } from '@/lib/data/exercises'
 
 interface Exercise {
   id: string
@@ -18,6 +20,7 @@ interface Exercise {
   muscle_group: string
   image_url: string
   exercise_type: 'weights' | 'bodyweight' | 'time'
+  tier: ExerciseTier
 }
 
 interface ExerciseStats {
@@ -50,7 +53,6 @@ export default function ExercisesPage() {
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Fetch exercises and stats in parallel
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
@@ -63,7 +65,14 @@ export default function ExercisesPage() {
         ])
 
         if (exercisesResponse.error) throw exercisesResponse.error
-        setExercises(exercisesResponse.data || [])
+        
+        // Map exercises and assign tiers based on exercise details
+        const exercisesWithTiers = exercisesResponse.data.map(exercise => ({
+          ...exercise,
+          tier: getExerciseDetails(exercise.name).tier || 'C'
+        }))
+
+        setExercises(exercisesWithTiers)
         setExerciseStats(stats)
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -94,8 +103,12 @@ export default function ExercisesPage() {
       <Tabs defaultValue="All" className="w-full">
         <ScrollArea className="w-full">
           <TabsList 
-            className="w-full justify-start bg-white p-1 gap-1 flex overflow-x-auto hide-scrollbar"
-            style={{ WebkitOverflowScrolling: 'touch' }}
+            className="w-full justify-start bg-white p-1 gap-1 flex overflow-x-auto whitespace-nowrap"
+            style={{ 
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
           >
             {muscleGroups.map((group) => (
               <TabsTrigger
@@ -115,8 +128,8 @@ export default function ExercisesPage() {
           </TabsList>
         </ScrollArea>
 
-        <TabsContent value={selectedMuscleGroup} className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TabsContent value={selectedMuscleGroup} className="mt-6 px-2 pb-20">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-6">
             <AnimatePresence mode="popLayout">
               {filteredExercises.map((exercise) => (
                 <ExerciseCard

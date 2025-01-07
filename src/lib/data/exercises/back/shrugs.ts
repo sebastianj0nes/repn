@@ -5,32 +5,32 @@ export const shrugs: ExerciseTemplate = {
   name: 'Shrugs',
   muscle_group: 'Back',
   exercise_type: 'weights',
-  tier: 'B',
-  overview: 'Shrugs are an isolation exercise targeting the upper trapezius muscles. They are effective for building neck and upper back strength, improving posture, and developing the "yoke" area.',
+  tier: 'A',
+  overview: 'An isolation exercise targeting the upper trapezius muscles, essential for developing upper back thickness and strength.',
   keyPoints: [
-    'Hold weights at sides',
-    'Lift shoulders straight up',
-    'Hold briefly at top',
-    'Lower with control'
+    'Lift shoulders directly up toward ears',
+    'Keep arms straight',
+    'Control both up and down motion',
+    'Maintain neutral spine'
   ],
   proTips: [
-    'Avoid rolling shoulders',
-    'Keep arms straight but not locked',
-    'Focus on vertical movement only',
-    'Use various grip positions'
+    'Use various implements (dumbbells, barbell, trap bar)',
+    'Focus on peak contraction',
+    'Try different rep ranges',
+    'Consider behind-the-back variation'
   ],
   instructions: [
     'Stand holding weights at sides',
     'Keep arms straight and relaxed',
-    'Elevate shoulders as high as possible',
-    'Hold contraction briefly',
-    'Lower shoulders with control'
+    'Elevate shoulders straight up',
+    'Hold briefly at top',
+    'Lower under control'
   ],
   commonMistakes: [
     'Rolling shoulders',
     'Using momentum',
-    'Moving arms instead of shoulders',
-    'Not maintaining proper posture'
+    'Bending arms',
+    'Moving too quickly'
   ],
   targetMuscles: {
     primary: ['Upper Trapezius'],

@@ -6,34 +6,34 @@ export const seatedCableRows: ExerciseTemplate = {
   muscle_group: 'Back',
   exercise_type: 'weights',
   tier: 'A',
-  overview: 'Seated cable rows are a compound exercise that targets the middle back while providing constant tension throughout the movement. The cable machine allows for smooth, controlled motion and helps develop both strength and muscle definition.',
+  overview: 'A compound pulling movement that develops mid-back thickness and overall back strength with constant tension.',
   keyPoints: [
     'Maintain upright posture',
+    'Keep chest proud',
     'Pull handle to lower chest',
-    'Keep chest up and shoulders back',
-    'Control both phases of movement'
+    'Control the weight throughout'
   ],
   proTips: [
+    'Experiment with different attachments',
     'Focus on squeezing shoulder blades',
-    'Avoid excessive lean forward/back',
-    'Keep elbows close to body',
+    'Use higher reps for better mind-muscle connection',
     'Pause briefly at peak contraction'
   ],
   instructions: [
-    'Sit with feet secured on platform',
+    'Sit with feet firmly on platform',
     'Grasp handle with extended arms',
-    'Keep chest up and back straight',
+    'Keep chest up, core tight',
     'Pull handle to lower chest',
     'Control return to start position'
   ],
   commonMistakes: [
-    'Using momentum to pull',
-    'Rounding the back',
-    'Moving torso too much',
-    'Releasing tension at extension'
+    'Rocking back and forth',
+    'Rounded back',
+    'Using too much momentum',
+    'Incomplete range of motion'
   ],
   targetMuscles: {
     primary: ['Latissimus Dorsi', 'Rhomboids', 'Trapezius'],
-    secondary: ['Rear Deltoids', 'Biceps', 'Core']
+    secondary: ['Rear Deltoids', 'Biceps', 'Forearms']
   }
 }; 

@@ -6,34 +6,34 @@ export const latPulldowns: ExerciseTemplate = {
   muscle_group: 'Back',
   exercise_type: 'weights',
   tier: 'A',
-  overview: 'Lat pulldowns are an excellent exercise for building back width and strength, particularly targeting the latissimus dorsi muscles. It\'s a great alternative to pull-ups and helps develop the muscles needed for them.',
+  overview: 'A machine-based exercise that mimics the pull-up movement pattern, excellent for building back width and strength.',
   keyPoints: [
-    'Grip bar slightly wider than shoulder width',
-    'Lean back slightly (about 10 degrees)',
-    'Pull bar to upper chest',
-    'Control the weight throughout'
+    'Keep chest up throughout movement',
+    'Drive elbows down and back',
+    'Maintain slight lean backward',
+    'Full range of motion from stretch to contraction'
   ],
   proTips: [
-    'Focus on pulling with elbows, not hands',
-    'Keep chest up throughout movement',
-    'Squeeze lats at bottom of movement',
-    'Maintain slight arch in lower back'
+    'Vary grip width for different emphasis',
+    'Focus on feeling lats contract',
+    'Use thumbless grip for better mind-muscle connection',
+    'Control the eccentric portion'
   ],
   instructions: [
-    'Adjust seat and knee pad for stability',
-    'Grasp bar with overhand grip',
-    'Start with arms fully extended',
-    'Pull bar down to upper chest',
+    'Adjust seat height for full arm extension',
+    'Grasp bar wider than shoulder width',
+    'Lean back slightly (10-15 degrees)',
+    'Pull bar to upper chest',
     'Control return to starting position'
   ],
   commonMistakes: [
-    'Using too much momentum',
-    'Pulling bar behind neck',
+    'Pulling with arms instead of back',
     'Leaning back too far',
-    'Not controlling the eccentric'
+    'Using momentum to swing',
+    'Incomplete range of motion'
   ],
   targetMuscles: {
-    primary: ['Latissimus Dorsi', 'Rhomboids'],
-    secondary: ['Biceps', 'Rear Deltoids', 'Teres Major']
+    primary: ['Latissimus Dorsi', 'Teres Major'],
+    secondary: ['Biceps', 'Rear Deltoids', 'Rhomboids']
   }
 }; 

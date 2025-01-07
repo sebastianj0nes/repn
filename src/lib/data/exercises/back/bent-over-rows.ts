@@ -5,32 +5,32 @@ export const bentOverRows: ExerciseTemplate = {
   name: 'Bent-Over Rows',
   muscle_group: 'Back',
   exercise_type: 'weights',
-  tier: 'S',
-  overview: 'Bent-over rows are a fundamental back exercise that targets multiple muscles in the back while improving posture and core stability. This compound movement is essential for building back thickness and strength.',
+  tier: 'A',
+  overview: 'A fundamental back exercise that builds thickness and strength in the upper and mid-back regions.',
   keyPoints: [
-    'Hinge at hips with flat back',
-    'Keep core braced throughout',
+    'Maintain flat back throughout',
+    'Keep core braced',
     'Pull weight to lower chest/upper abdomen',
-    'Squeeze shoulder blades together at top'
+    'Control the negative portion'
   ],
   proTips: [
-    'Focus on pulling with elbows, not hands',
-    'Maintain neutral spine position',
-    'Control the eccentric portion',
-    'Keep upper body still - avoid swinging'
+    'Experiment with grip width for different emphasis',
+    'Use straps for heavier sets if grip fails',
+    'Think about pulling elbows to ceiling',
+    'Reset position between reps if needed'
   ],
   instructions: [
-    'Stand with feet shoulder-width apart',
-    'Bend at hips until torso is nearly parallel to floor',
-    'Grip barbell with hands slightly wider than shoulder width',
-    'Pull bar to lower chest while keeping elbows close',
-    'Lower weight with control to starting position'
+    'Hinge at hips to ~45 degree angle',
+    'Grip barbell slightly wider than shoulders',
+    'Let arms hang straight down',
+    'Pull bar to lower chest',
+    'Lower with control'
   ],
   commonMistakes: [
     'Rounding the back',
-    'Using momentum to lift weight',
-    'Not maintaining hip hinge',
-    'Pulling too high or too low'
+    'Using too much body English',
+    'Not pulling bar high enough',
+    'Letting chest drop'
   ],
   targetMuscles: {
     primary: ['Latissimus Dorsi', 'Rhomboids', 'Trapezius'],

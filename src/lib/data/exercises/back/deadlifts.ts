@@ -6,34 +6,34 @@ export const deadlifts: ExerciseTemplate = {
   muscle_group: 'Back',
   exercise_type: 'weights',
   tier: 'S',
-  overview: 'The deadlift is one of the most effective compound exercises, targeting multiple muscle groups while building overall strength and power. It\'s considered a fundamental movement pattern essential for both strength and functional fitness.',
+  overview: 'A fundamental compound exercise that targets multiple muscle groups, primarily focusing on the posterior chain including the back, glutes, and hamstrings.',
   keyPoints: [
-    'Bar over mid-foot',
-    'Shoulders slightly ahead of bar',
-    'Straight arms, engaged lats',
-    'Push floor away to initiate lift'
+    'Maintain neutral spine throughout movement',
+    'Keep bar close to shins and thighs',
+    'Drive through heels',
+    'Engage lats before lifting'
   ],
   proTips: [
-    'Take slack out of bar before lifting',
-    'Keep bar close to body throughout',
-    'Breathe and brace properly',
-    'Drive hips and knees in unison'
+    'Use mixed grip for heavier weights',
+    'Practice hip hinge pattern without weight first',
+    'Consider using lifting straps for working sets',
+    'Reset between reps for better form'
   ],
   instructions: [
-    'Position feet hip-width apart under bar',
-    'Bend and grip bar outside knees',
-    'Drop hips and raise chest',
-    'Take deep breath and brace core',
-    'Drive through heels while keeping bar close'
+    'Stand with feet hip-width apart, bar over mid-foot',
+    'Hinge at hips to grip bar just outside knees',
+    'Brace core, pull slack out of bar',
+    'Drive through heels while maintaining bar contact',
+    'Lock out hips and knees at top'
   ],
   commonMistakes: [
-    'Rounding the back',
-    'Starting with hips too high',
-    'Letting bar drift forward',
-    'Not engaging lats'
+    'Rounding the lower back',
+    'Starting with bar too far from shins',
+    'Jerking the weight off the floor',
+    'Not engaging lats before lift'
   ],
   targetMuscles: {
-    primary: ['Erector Spinae', 'Latissimus Dorsi', 'Trapezius'],
-    secondary: ['Glutes', 'Hamstrings', 'Core', 'Forearms']
+    primary: ['Erector Spinae', 'Latissimus Dorsi', 'Gluteus Maximus'],
+    secondary: ['Hamstrings', 'Trapezius', 'Forearms']
   }
 }; 

@@ -5,35 +5,35 @@ export const singleArmLatPulldown: ExerciseTemplate = {
   name: 'Single Arm Lat Pulldown',
   muscle_group: 'Back',
   exercise_type: 'weights',
-  tier: 'B',
-  overview: 'The single-arm lat pulldown allows for greater focus on individual lat development while identifying and correcting muscle imbalances. It also provides a greater range of motion and mind-muscle connection than traditional pulldowns.',
+  tier: 'A',
+  overview: 'A unilateral variation of the lat pulldown that allows for greater focus on individual lat development and mind-muscle connection.',
   keyPoints: [
-    'Stabilize core throughout movement',
+    'Maintain stable core position',
+    'Focus on lat engagement',
     'Keep shoulder blade down',
-    'Pull elbow down and back',
-    'Maintain upright posture'
+    'Control entire movement'
   ],
   proTips: [
-    'Focus on lat contraction',
-    'Avoid leaning or twisting',
-    'Control the eccentric phase',
-    'Use lighter weight for better form'
+    'Use lighter weight to perfect form',
+    'Try different handle attachments',
+    'Focus on feeling stretch at top',
+    'Consider leaning away slightly'
   ],
   instructions: [
-    'Adjust seat for stability',
     'Grasp handle with one hand',
-    'Start with arm fully extended',
-    'Pull handle down to shoulder level',
-    'Control return to start position'
+    'Stabilize core and opposite side',
+    'Pull handle down to shoulder',
+    'Focus on lat contraction',
+    'Control return to start'
   ],
   commonMistakes: [
-    'Using too much weight',
-    'Rotating torso',
-    'Relying on arm strength',
+    'Excessive twisting',
+    'Using momentum',
+    'Poor posture',
     'Rushing the movement'
   ],
   targetMuscles: {
     primary: ['Latissimus Dorsi', 'Teres Major'],
-    secondary: ['Biceps', 'Rear Deltoid', 'Core']
+    secondary: ['Rear Deltoid', 'Biceps', 'Core']
   }
 }; 
