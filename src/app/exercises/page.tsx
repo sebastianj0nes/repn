@@ -3,16 +3,13 @@
 import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Database } from '@/lib/database.types'
-import Image from 'next/image'
 import { DumbbellIcon } from 'lucide-react'
 import { ExerciseCard } from '@/components/ExerciseCard'
 import { getExerciseStats } from '@/lib/api/exercises'
 import { ExerciseTier } from '@/lib/types/exercise'
 import { getExerciseDetails } from '@/lib/data/exercises'
+import { FilterControls } from '@/components/exercises/FilterControls'
 
 interface Exercise {
   id: string
@@ -33,21 +30,13 @@ interface ExerciseStats {
 export default function ExercisesPage() {
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('All')
+  const [selectedTier, setSelectedTier] = useState('All')
+  const [sortBy, setSortBy] = useState('Name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [loading, setLoading] = useState(true)
   const [exerciseStats, setExerciseStats] = useState<Record<string, ExerciseStats>>({})
   
   const supabase = createClientComponentClient<Database>()
-
-  const muscleGroups = [
-    'All',
-    'Back',
-    'Bicep',
-    'Shoulder',
-    'Tricep',
-    'Chest',
-    'Core',
-    'Legs'
-  ]
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,9 +73,24 @@ export default function ExercisesPage() {
     fetchData()
   }, [])
 
-  const filteredExercises = selectedMuscleGroup === 'All' 
-    ? exercises
-    : exercises.filter(ex => ex.muscle_group === selectedMuscleGroup)
+  const filteredAndSortedExercises = exercises
+    .filter(ex => 
+      (selectedMuscleGroup === 'All' || ex.muscle_group === selectedMuscleGroup) &&
+      (selectedTier === 'All' || ex.tier === selectedTier)
+    )
+    .sort((a, b) => {
+      if (sortBy === 'Name') {
+        return sortDirection === 'asc' 
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name)
+      } else {
+        // Sort by tier (S > A > B)
+        const tierOrder = { S: 3, A: 2, B: 1 }
+        const tierDiff = (tierOrder[b.tier as keyof typeof tierOrder] || 0) - 
+                        (tierOrder[a.tier as keyof typeof tierOrder] || 0)
+        return sortDirection === 'asc' ? -tierDiff : tierDiff
+      }
+    })
 
   if (loading) {
     return (
@@ -100,41 +104,28 @@ export default function ExercisesPage() {
     <div className="container mx-auto px-4 py-6 pb-20">
       <h1 className="text-2xl font-bold mb-6">Exercise Library</h1>
       
-      <Tabs defaultValue="All" className="w-full">
-        <ScrollArea className="w-full">
-          <TabsList className="grid grid-cols-4 gap-1 mb-4 bg-transparent">
-            {muscleGroups.map((group) => (
-              <TabsTrigger
-                key={group}
-                value={group}
-                onClick={() => setSelectedMuscleGroup(group)}
-                className="flex-shrink-0 px-2 py-1.5 
-                          bg-white text-foreground text-xs
-                          data-[state=active]:bg-black data-[state=active]:text-white
-                          hover:bg-gray-100 data-[state=active]:hover:bg-black/90
-                          transition-all duration-200 ease-in-out
-                          rounded-md font-medium"
-              >
-                {group}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </ScrollArea>
+      <FilterControls
+        selectedMuscleGroup={selectedMuscleGroup}
+        selectedTier={selectedTier}
+        sortBy={sortBy}
+        sortDirection={sortDirection}
+        onMuscleGroupChange={setSelectedMuscleGroup}
+        onTierChange={setSelectedTier}
+        onSortChange={setSortBy}
+        onSortDirectionChange={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+      />
 
-        <TabsContent value={selectedMuscleGroup} className="mt-6 px-2 pb-20">
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-6">
-            <AnimatePresence mode="popLayout">
-              {filteredExercises.map((exercise) => (
-                <ExerciseCard
-                  key={exercise.id}
-                  exercise={exercise}
-                  stats={exerciseStats[exercise.id]}
-                />
-              ))}
-            </AnimatePresence>
-          </div>
-        </TabsContent>
-      </Tabs>
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-6">
+        <AnimatePresence mode="popLayout">
+          {filteredAndSortedExercises.map((exercise) => (
+            <ExerciseCard
+              key={exercise.id}
+              exercise={exercise}
+              stats={exerciseStats[exercise.id]}
+            />
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   )
 } 
