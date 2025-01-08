@@ -102,25 +102,18 @@ export default function ExercisesPage() {
       
       <Tabs defaultValue="All" className="w-full">
         <ScrollArea className="w-full">
-          <TabsList 
-            className="w-full justify-start bg-white p-1 gap-1 flex overflow-x-auto whitespace-nowrap"
-            style={{ 
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
-            }}
-          >
+          <TabsList className="grid grid-cols-4 gap-1 mb-4 bg-transparent">
             {muscleGroups.map((group) => (
               <TabsTrigger
                 key={group}
                 value={group}
                 onClick={() => setSelectedMuscleGroup(group)}
-                className="flex-shrink-0 px-4 py-2.5 
-                          bg-white text-foreground
+                className="flex-shrink-0 px-2 py-1.5 
+                          bg-white text-foreground text-xs
                           data-[state=active]:bg-black data-[state=active]:text-white
                           hover:bg-gray-100 data-[state=active]:hover:bg-black/90
                           transition-all duration-200 ease-in-out
-                          rounded-md font-medium min-w-fit"
+                          rounded-md font-medium"
               >
                 {group}
               </TabsTrigger>

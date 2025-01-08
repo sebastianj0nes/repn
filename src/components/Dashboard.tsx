@@ -155,7 +155,7 @@ export default function Dashboard() {
         </Card>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -176,21 +176,6 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Link href="/exercises">
-            <Card className="h-full hover:shadow-lg transition-shadow">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                <Dumbbell className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold">Exercises</h3>
-              </CardContent>
-            </Card>
-          </Link>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
           <Link href="/stats">
             <Card className="h-full hover:shadow-lg transition-shadow">
               <CardContent className="p-6 flex flex-col items-center justify-center text-center">
@@ -201,6 +186,22 @@ export default function Dashboard() {
           </Link>
         </motion.div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="mb-6"
+      >
+        <Link href="/exercises">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+              <Dumbbell className="h-8 w-8 mb-2 text-primary" />
+              <h3 className="font-semibold">Exercises</h3>
+            </CardContent>
+          </Card>
+        </Link>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
