@@ -65,7 +65,7 @@ const exerciseDatabase = {
   'Russian Twists': russianTwists,
   
   'Assisted Pull-ups': assistedPullUps,
-  'Bent-Over Rows': bentOverRows,
+  'Barbell Rows': bentOverRows,
   'Deadlifts': deadlifts,
   'Lat Pulldowns': latPulldowns,
   'Pull-Ups': pullUps,

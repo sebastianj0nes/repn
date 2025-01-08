@@ -1,15 +1,15 @@
-const backExercises = {
+export const backExercises = {
   'Pull-Ups': '/exercises/pullup.gif',
   'Assisted Pull-ups': '/exercises/assistedPullUp.gif',
   'Lat Pulldowns': '/exercises/latPulldown.gif',
-  'Bent-Over Rows': '/exercises/barbellRow.gif',
+  'Barbell Rows': '/exercises/barbellRow.gif',
   'Single Arm Lat Pulldown': '/exercises/singlearmLatPulldown.gif',
   'Seated Cable Rows': '/exercises/cableRow.gif',
   'Shrugs': '/exercises/shrugs.gif',
   'Deadlifts': '/exercises/deadlift.gif',
 } as const;
 
-const chestExercises = {
+export const chestExercises = {
   'Bench Press - Barbell': '/exercises/barbellBench.gif',
   'Bench Press - Dumbbell': '/exercises/dumbbellBench.gif',
   'Incline Bench Press': '/exercises/inclineBenchPress.gif',
@@ -19,7 +19,7 @@ const chestExercises = {
   'Cable Flyes': '/exercises/cableFly.gif',
 } as const;
 
-const shoulderExercises = {
+export const shoulderExercises = {
   'Shoulder Press - Barbell': '/exercises/barbellShoulderPress.gif',
   'Shoulder Press - Dumbbell': '/exercises/dbShoulderPress.gif',
   'Lateral Raises': '/exercises/lateralRaise.gif',
@@ -28,7 +28,7 @@ const shoulderExercises = {
   'Rear Delt Flyes': '/exercises/rearDeltFly.gif',
 } as const;
 
-const bicepExercises = {
+export const bicepExercises = {
   'Barbell Curls': '/exercises/barbellCurl.gif',
   'Bicep Curl - Dumbbell': '/exercises/dumbbelBicepCurl.gif',
   'Hammer Curls': '/exercises/hammerCurl.gif',
@@ -39,7 +39,7 @@ const bicepExercises = {
   'Concentration Curls': '/exercises/concCurl.gif',
 } as const;
 
-const tricepExercises = {
+export const tricepExercises = {
   'Tricep Pushdowns': '/exercises/tricepPushdown.gif',
   'Skull Crushers': '/exercises/skullCrusher.gif',
   'Tricep Dips': '/exercises/tricepDip.gif',
@@ -48,7 +48,7 @@ const tricepExercises = {
   'Overhead Tricep Extensions': '/exercises/overheadTricepExtension.gif',
 } as const;
 
-const coreExercises = {
+export const coreExercises = {
   'Ab Roller': '/exercises/abRoller.gif',
   'Planks': '/exercises/plank.gif',
   'Crunches': '/exercises/crunch.gif',
@@ -56,7 +56,7 @@ const coreExercises = {
   'Leg Raises': '/exercises/legRaise.gif',
 } as const;
 
-const legExercises = {
+export const legExercises = {
   'Squats': '/exercises/squat.gif',
   'Leg Press': '/exercises/legPress.gif',
   'Lunges': '/exercises/lunge.gif',

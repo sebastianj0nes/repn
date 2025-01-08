@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Dumbbell, Plus, Check, Camera, Upload, Smile, Meh, Frown, ChevronRight, Star, Zap , ChevronLeft , Badge, Pencil, LucideIcon, ThumbsDown, ThumbsUp, Minus, AlertCircle, Trash2, Mountain, Gauge, Target, Activity } from 'lucide-react'
+import { Dumbbell, Plus, Check, Camera, Upload, Smile, Timer, Meh, Frown, ChevronRight, Star, Zap , ChevronLeft , Badge, Pencil, LucideIcon, ThumbsDown, ThumbsUp, Minus, AlertCircle, Trash2, Mountain, Gauge, Target, Activity, History, Trophy } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Confetti from 'react-confetti'
 import Link from 'next/link'
@@ -36,6 +36,15 @@ import {
 import { checkAchievementsAfterWorkout } from '@/lib/utils/checkAchievements'
 import { MuscleGroupSelectionTip, SetOfDayTip, DropsetTip, WorkoutFeelingTip, WeightTrackingTip, WorkoutPhotoTip } from '@/components/tips/WorkoutTips'
 import { ImageHandler } from '@/lib/utils/imageHandler'
+import { 
+  backExercises, 
+  chestExercises, 
+  shoulderExercises, 
+  bicepExercises,
+  tricepExercises,
+  coreExercises,
+  legExercises
+} from '@/lib/utils/exerciseImages'
 
 interface Set {
   weight?: number | null;
@@ -94,6 +103,20 @@ const muscleGroups = [
   }
 ];
 
+const getExerciseGifPath = (exerciseName: string): string | undefined => {
+  const allExercises = {
+    ...backExercises,
+    ...chestExercises,
+    ...shoulderExercises,
+    ...bicepExercises,
+    ...tricepExercises,
+    ...coreExercises,
+    ...legExercises
+  };
+  
+  return allExercises[exerciseName as keyof typeof allExercises];
+};
+
 export default function NewWorkoutPage() {
   const [step, setStep] = useState(1)
   const [progress, setProgress] = useState(0)
@@ -118,6 +141,7 @@ export default function NewWorkoutPage() {
   const [showWeightInput, setShowWeightInput] = useState(false);
   const [showSOTDWarning, setShowSOTDWarning] = useState(false);
   const [showMultipleSOTDWarning, setShowMultipleSOTDWarning] = useState(false);
+  const [lastExerciseData, setLastExerciseData] = useState<any>(null);
 
   const totalSteps = 5 // Total number of steps in the workout process
 
@@ -848,26 +872,115 @@ export default function NewWorkoutPage() {
                 
                 {currentExercise.name && (
                   <>
-                    <Input
-                      placeholder="Exercise name"
-                      value={currentExercise.name}
-                      onChange={handleExerciseNameChange}
-                      disabled
-                    />
-                    <AnimatePresence>
-                      {currentExercise.sets.map((set, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.3 }}
-                          className="flex space-x-2 items-center"
+                    <Card className="border-2 border-primary">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {currentExercise.exercise_type === 'weights' && (
+                              <Barbell className="h-5 w-5 text-gray-500" />
+                            )}
+                            {currentExercise.exercise_type === 'bodyweight' && (
+                              <PersonSimpleWalk className="h-5 w-5 text-gray-500" />
+                            )}
+                            {currentExercise.exercise_type === 'time' && (
+                              <Timer className="h-5 w-5 text-gray-500" />
+                            )}
+                            <CardTitle className="text-lg">{currentExercise.name}</CardTitle>
+                          </div>
+                        </div>
+                      </CardHeader>
+
+                      {/* Exercise GIF and Last Workout Display */}
+                      <div className="flex justify-between w-full px-4 pb-4 gap-4">
+                        {/* Exercise GIF */}
+                        <div className={`relative mx-auto ${lastExerciseData ? 'w-3/4' : 'w-4/5'} 
+                          ${lastExerciseData ? 'md:w-2/3' : 'md:w-1/2'} 
+                          ${lastExerciseData ? 'lg:w-1/2' : 'lg:w-2/5'} 
+                          aspect-square`}
                         >
-                          {renderSetInputs(set, index)}
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+                          <Image
+                            src={getExerciseGifPath(currentExercise.name) || '/exercises/default.gif'}
+                            alt={currentExercise.name}
+                            fill
+                            className="object-contain rounded-lg"
+                            unoptimized={true}
+                            priority={true}
+                          />
+                        </div>
+
+                        {/* Last Workout Data - Only show if data exists */}
+                        {lastExerciseData && lastExerciseData.exercise_sets?.length > 0 && (
+                          <div className="w-1/4 min-w-[120px] md:min-w-[150px] lg:min-w-[180px] flex flex-col justify-center">
+                            <div className="bg-card p-2 rounded-xl border shadow-sm space-y-2">
+                              <div className="flex items-center gap-1.5 border-b pb-1.5">
+                                <History className="h-3.5 w-3.5 text-primary" />
+                                <h4 className="text-xs font-medium">Last Session</h4>
+                              </div>
+                              
+                              <div className="space-y-1">
+                                {lastExerciseData.exercise_sets?.map((set: any, idx: number) => (
+                                  <div 
+                                    key={idx}
+                                    className="text-[10px] flex flex-wrap items-center gap-1 text-muted-foreground"
+                                  >
+                                    <span className="min-w-[12px] text-center font-medium text-primary">
+                                      {idx + 1}.
+                                    </span>
+                                    <div className="flex items-center gap-0.5">
+                                      {currentExercise.exercise_type === 'weights' && (
+                                        <>
+                                          <span>{set.weight}kg</span>
+                                          <span className="mx-0.5">×</span>
+                                          <span>{set.reps}</span>
+                                        </>
+                                      )}
+                                      {currentExercise.exercise_type === 'bodyweight' && (
+                                        <span>{set.reps} reps</span>
+                                      )}
+                                      {currentExercise.exercise_type === 'time' && (
+                                        <span>{set.duration}s</span>
+                                      )}
+                                    </div>
+                                    {set.is_dropset && currentExercise.exercise_type === 'weights' && 
+                                     set.dropset_weight && set.dropset_reps && (
+                                      <div className="flex items-center gap-0.5 text-blue-500 ml-0.5">
+                                        <ChevronRight className="h-2.5 w-2.5" />
+                                        <span>{set.dropset_weight}kg</span>
+                                        <span className="mx-0.5">×</span>
+                                        <span>{set.dropset_reps}</span>
+                                      </div>
+                                    )}
+                                    {set.is_dropset && currentExercise.exercise_type === 'bodyweight' && 
+                                     set.dropset_reps && (
+                                      <div className="flex items-center gap-0.5 text-blue-500 ml-0.5">
+                                        <ChevronRight className="h-2.5 w-2.5" />
+                                        <span>{set.dropset_reps} reps</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <CardContent className="space-y-4">
+                        {/* Rest of the exercise input form remains the same */}
+                        {currentExercise.sets.map((set, index) => (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex space-x-2 items-center"
+                          >
+                            {renderSetInputs(set, index)}
+                          </motion.div>
+                        ))}
+                      </CardContent>
+                    </Card>
                     <div className="flex space-x-2">
                       <Button onClick={() => addSet()} variant="outline" className="w-1/2">
                         <Plus className="mr-2 h-4 w-4" /> Add Set
@@ -1436,17 +1549,31 @@ export default function NewWorkoutPage() {
     );
   };
 
-  const handleExerciseSelect = (exerciseId: string) => {
-    const selectedExercise = availableExercises.find(ex => ex.id === exerciseId);
+  const handleExerciseSelect = async (value: string) => {
+    console.log('Exercise selected:', value);
+    const selectedExercise = availableExercises.find(ex => ex.id === value);
+    
     if (selectedExercise) {
+      console.log('Found selected exercise:', selectedExercise);
       setCurrentExercise({
         id: selectedExercise.id,
         name: selectedExercise.name,
         sets: [{ isDropSet: false, isSetOfTheDay: false }],
         muscle_group: selectedExercise.muscle_group,
-        exercise_type: selectedExercise.exercise_type
+        exercise_type: selectedExercise.exercise_type,
+        image_url: selectedExercise.image_url
       });
-      setSelectedExerciseId(exerciseId);
+
+      if (session?.user?.id) {
+        console.log('Fetching last workout data for user:', session.user.id);
+        const lastData = await fetchLastExerciseData(selectedExercise.name, session.user.id);
+        console.log('Received last workout data:', lastData);
+        setLastExerciseData(lastData);
+      } else {
+        console.log('No user session found');
+      }
+    } else {
+      console.log('Selected exercise not found in availableExercises');
     }
   };
 
@@ -1493,47 +1620,75 @@ export default function NewWorkoutPage() {
     }
   };
 
-  const renderMuscleGroupIcon = (group: string) => {
-    const muscleGroup = muscleGroups.find(mg => mg.name === group);
-    if (!muscleGroup) return null;
+  const fetchLastExerciseData = async (exerciseName: string, userId: string) => {
+    try {
+      // First get the exercise details from exercises_library
+      const { data: exerciseLibrary, error: libraryError } = await supabase
+        .from('exercises_library')
+        .select('id, name, exercise_type')
+        .eq('name', exerciseName)
+        .single();
 
-    return (
-      <Image 
-        src={muscleGroup.icon}
-        alt={`${muscleGroup.name} icon`}
-        width={24}
-        height={24}
-        className="object-contain"
-      />
-    );
-  };
+      if (libraryError || !exerciseLibrary) {
+        console.log('Error or no data from exercises_library:', libraryError);
+        return null;
+      }
 
-  const renderMuscleTally = () => {
-    return (
-      <div className="flex flex-wrap gap-2">
-        {workout?.muscleGroups.map(group => {
-          const count = workout.exercises.filter(ex => ex.muscle_group === group).length;
-          const muscleGroup = muscleGroups.find(mg => mg.name === group);
-          
-          return (
-            <div 
-              key={group}
-              className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-md shadow-sm border border-gray-100"
-            >
-              <Image 
-                src={muscleGroup?.icon || '/muscleGroups/default.png'}
-                alt={`${group} icon`}
-                width={16}
-                height={16}
-                className="object-contain"
-              />
-              <span className="text-sm font-medium text-gray-700">{group}:</span>
-              <span className="text-sm font-bold text-primary">{count}</span>
-            </div>
-          );
-        })}
-      </div>
-    );
+      console.log('Found exercise in library:', exerciseLibrary);
+
+      // Get the most recent workout containing this exercise
+      const { data: workoutData, error: workoutError } = await supabase
+        .from('workouts')
+        .select(`
+          id,
+          date,
+          exercises!inner (
+            id,
+            exercise_id,
+            max_weight,
+            total_sets,
+            exercise_sets (
+              set_number,
+              weight,
+              reps,
+              duration,
+              is_dropset,
+              dropset_weight,
+              dropset_reps
+            )
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('exercises.exercise_id', exerciseLibrary.id)
+        .order('date', { ascending: false })
+        .limit(1);
+
+      if (workoutError) {
+        console.error('Error fetching workout data:', workoutError);
+        return null;
+      }
+
+      if (!workoutData || workoutData.length === 0) {
+        console.log('No previous workouts found for this exercise');
+        return null;
+      }
+
+      const exerciseData = workoutData[0].exercises[0];
+      console.log('Found exercise data:', exerciseData);
+
+      // Sort sets and include exercise_type
+      return {
+        max_weight: exerciseData.max_weight,
+        total_sets: exerciseData.total_sets,
+        exercise_sets: exerciseData.exercise_sets
+          ?.sort((a: any, b: any) => a.set_number - b.set_number),
+        exercise_type: exerciseLibrary.exercise_type
+      };
+
+    } catch (error) {
+      console.error('Unexpected error in fetchLastExerciseData:', error);
+      return null;
+    }
   };
 
   return (
