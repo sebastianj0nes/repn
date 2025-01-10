@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowUpDown, Filter, SortAsc } from "lucide-react"
 import { getTierColor } from "@/lib/types/exercise"
 import { cn } from "@/lib/utils"
+import { TIER_COLORS } from "@/lib/constants/tiers"
 
 interface FilterControlsProps {
   selectedMuscleGroup: string
@@ -28,6 +29,20 @@ export function FilterControls({
   onSortChange,
   onSortDirectionChange
 }: FilterControlsProps) {
+  const getTierStyle = (tier: string) => {
+    if (selectedTier === tier) {
+      if (tier === 'All') {
+        return "bg-gray-900 text-white border-gray-900 hover:bg-gray-800"
+      }
+      if (tier in TIER_COLORS) {
+        const colors = TIER_COLORS[tier as keyof typeof TIER_COLORS]
+        const textColor = tier === 'A*' ? 'text-black' : 'text-white'
+        return `bg-gradient-to-r from-[${colors.from}] to-[${colors.to}] ${textColor} border-[${colors.to}]`
+      }
+    }
+    return "hover:bg-blue-50"
+  }
+
   return (
     <div className="w-full bg-white px-4 py-4">
       <div className="max-w-7xl mx-auto space-y-4">
@@ -65,40 +80,20 @@ export function FilterControls({
           <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">Exercise Tier</label>
             <div className="flex gap-2">
-              {tiers.map((tier) => {
-                const getTierStyle = () => {
-                  if (selectedTier === tier) {
-                    if (tier === 'All') {
-                      return "bg-gray-900 text-white border-gray-900 hover:bg-gray-800"
-                    }
-                    if (tier === 'A*') {
-                      return "bg-gradient-to-r from-[#FFD700] to-[#FFB700] text-black border-[#FFB700]"
-                    }
-                    if (tier === 'A') {
-                      return "bg-gradient-to-r from-[#14B8A6] to-[#0D9488] text-white border-[#0D9488]"
-                    }
-                    if (tier === 'B') {
-                      return "bg-gradient-to-r from-[#6366F1] to-[#4F46E5] text-white border-[#4F46E5]"
-                    }
-                  }
-                  return "hover:bg-blue-50"
-                }
-
-                return (
-                  <Button
-                    key={tier}
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onTierChange(tier)}
-                    className={cn(
-                      "h-8 px-3 text-sm transition-colors font-semibold",
-                      getTierStyle()
-                    )}
-                  >
-                    {tier}
-                  </Button>
-                )
-              })}
+              {tiers.map((tier) => (
+                <Button
+                  key={tier}
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onTierChange(tier)}
+                  className={cn(
+                    "h-8 px-3 text-sm transition-colors font-semibold",
+                    getTierStyle(tier)
+                  )}
+                >
+                  {tier}
+                </Button>
+              ))}
             </div>
           </div>
         </div>

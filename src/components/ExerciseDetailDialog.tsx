@@ -29,73 +29,54 @@ interface ExerciseDetailDialogProps {
 }
 
 export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDetailDialogProps) {
+  const getTierStyles = () => {
+    switch(exercise.tier) {
+      case 'A*':
+        return 'from-yellow-400 via-yellow-300 to-yellow-400 border-yellow-600'
+      case 'A':
+        return 'from-green-400 via-green-300 to-green-400 border-green-600'
+      default:
+        return 'from-blue-400 via-blue-300 to-blue-400 border-blue-600'
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`
-        max-w-md p-0 rounded-lg shadow-lg overflow-hidden border border-black/20
-        data-[state=open]:animate-slideIn
-        data-[state=closed]:animate-slideOut
-        max-h-[90vh] flex flex-col
-        ${exercise.tier === 'A*' 
-          ? 'bg-gradient-to-br from-yellow-400/90 via-yellow-200/90 to-yellow-400/90 border-2 border-yellow-500'
-          : exercise.tier === 'A'
-          ? 'bg-gradient-to-br from-green-400/90 via-green-200/90 to-green-400/90 border-2 border-green-500'
-          : exercise.tier === 'B'
-          ? 'bg-gradient-to-br from-blue-400/90 via-blue-200/90 to-blue-400/90 border-2 border-blue-500'
-          : 'bg-white'
-        }
-      `}>
-        <div className="sticky top-0 z-10 bg-inherit pt-6 pb-4 px-6">
-          <button 
-            onClick={onClose}
-            className="absolute right-4 top-4 z-50 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          
-          <DialogHeader className="mb-4">
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center"
-            >
-              <DialogTitle className="text-xl font-bold text-gray-900">
-                {exercise.name}
-              </DialogTitle>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex-1"></div>
-                <p className="text-sm text-gray-600 flex-1">
-                  {exercise.muscle_group}
-                </p>
-                <div className="flex-1 flex justify-end">
-                  <Badge 
-                    variant="outline" 
-                    className={`
-                      font-bold px-3 py-1
-                      ${exercise.tier === 'A*' 
-                        ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-transparent' 
-                        : exercise.tier === 'A'
-                        ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-transparent'
-                        : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-transparent'
-                      }
-                    `}
-                  >
-                    {exercise.tier} TIER
-                  </Badge>
-                </div>
+      <DialogContent className="max-w-md p-0 rounded-xl shadow-lg overflow-hidden max-h-[90vh]">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{exercise.name} Exercise Details</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="h-full max-h-[90vh]">
+          {/* Main Card Container */}
+          <div className={`
+            w-full h-full flex flex-col
+            bg-gradient-to-br ${getTierStyles()}
+            p-4 space-y-4
+          `}>
+            {/* Header Section */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-black">{exercise.name}</h2>
+                <button 
+                  onClick={onClose}
+                  className="rounded-full bg-black/20 p-1"
+                >
+                  <X className="h-4 w-4 text-white" />
+                </button>
               </div>
-            </motion.div>
-          </DialogHeader>
-        </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-black/70">{exercise.muscle_group}</p>
+                <Badge className={`
+                  font-bold px-3 py-1 text-white border-2 border-black
+                  bg-black/20 backdrop-blur-sm
+                `}>
+                  {exercise.tier} TIER
+                </Badge>
+              </div>
+            </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="px-6">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="relative h-48 w-full bg-white rounded-lg shadow-inner mb-6 border border-black/20"
-            >
+            {/* Exercise Image Card */}
+            <div className="relative h-48 w-full bg-white rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               {exercise.image_url ? (
                 <Image
                   src={exercise.image_url}
@@ -110,93 +91,63 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
                   <Info className="w-12 h-12 text-gray-400" />
                 </div>
               )}
-            </motion.div>
-          </div>
+            </div>
 
-          <div className="p-6 space-y-4">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-black/20"
-            >
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {exercise.overview}
-              </p>
-            </motion.div>
+            {/* Info Card */}
+            <div className="bg-white rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
+              {/* Overview Section */}
+              <div className="mb-6">
+                <h3 className="font-bold text-lg mb-2 text-black">Overview</h3>
+                <p className="text-sm text-gray-600">{exercise.overview}</p>
+              </div>
 
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="grid grid-cols-1 gap-4"
-            >
-              <div className="bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-black/20">
+              {/* Key Points Section */}
+              <div className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
                   <CheckCircle2 className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-lg text-gray-900">Key Points</h3>
+                  <h3 className="font-bold text-lg text-black">Key Points</h3>
                 </div>
-                <div className="grid gap-2">
+                <ul className="space-y-2">
                   {exercise.keyPoints.map((point, index) => (
-                    <motion.div
+                    <li 
                       key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 + (index * 0.1) }}
-                      className="bg-gray-50/80 rounded-md p-3 text-sm text-gray-600 border border-black/10"
+                      className="text-sm text-gray-600 pl-4 border-l-2 border-primary"
                     >
                       {point}
-                    </motion.div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
 
-              <div className="bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-black/20">
+              {/* Pro Tips Section */}
+              <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Lightbulb className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-lg text-gray-900">Pro Tips</h3>
+                  <h3 className="font-bold text-lg text-black">Pro Tips</h3>
                 </div>
-                <div className="grid gap-2">
+                <ul className="space-y-2">
                   {exercise.proTips.map((tip, index) => (
-                    <motion.div
+                    <li 
                       key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 + (index * 0.1) }}
-                      className="bg-gray-50/80 rounded-md p-3 text-sm text-gray-600 border border-black/10"
+                      className="text-sm text-gray-600 pl-4 border-l-2 border-primary"
                     >
                       {tip}
-                    </motion.div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
-            </motion.div>
-          </div>
-        </div>
+            </div>
 
-        <div className="sticky bottom-0 p-6 pt-4 bg-white/80 backdrop-blur-sm border-t border-black/20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
+            {/* Action Button */}
             <Button 
               onClick={() => console.log('Add to My Exercises:', exercise.name)}
-              className={`
-                w-full font-semibold
-                ${exercise.tier === 'A*' 
-                  ? 'bg-yellow-600 hover:bg-yellow-700 text-white' 
-                  : exercise.tier === 'A'
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }
-              `}
+              className="w-full font-bold text-white border-2 border-black bg-black hover:bg-black/80 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add to My Exercises
             </Button>
-          </motion.div>
-        </div>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )

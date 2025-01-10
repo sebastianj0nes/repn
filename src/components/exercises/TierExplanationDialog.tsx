@@ -10,15 +10,16 @@ import {
 } from "@/components/ui/dialog"
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons"
 import { X } from "lucide-react"
+import { TIER_COLORS } from "@/lib/constants/tiers"
 
 export function TierExplanationDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
         <div className="flex justify-center w-full">
-          <button className="text-sm text-muted-foreground hover:text-primary transition-colors underline decoration-dotted flex items-center gap-2">
+          <button className="text-sm text-muted-foreground hover:text-primary text-gray-500 transition-colors underline decoration-dotted flex items-center gap-2">
             <QuestionMarkCircledIcon className="h-4 w-4" />
-            What are tiers?
+            What are Tiers?
           </button>
         </div>
       </DialogTrigger>
@@ -31,7 +32,7 @@ export function TierExplanationDialog() {
           
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-black pr-6">
-              Exercise Tiers Explained
+              Repn Exercise Tiers
             </DialogTitle>
           </DialogHeader>
         </div>
@@ -42,21 +43,24 @@ export function TierExplanationDialog() {
               Tiers are a simple and easy way to understand which exercises are the <span className="font-bold">best to choose</span> when working out.
             </p>
             <div className="space-y-2">
-              <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'linear-gradient(45deg, #FFD700, #FFB700)' }}>
-                <span className="text-lg font-bold px-2 py-1 rounded bg-white/20 border-2 border-black shadow-sm">A*</span>
-                <p className="text-sm text-black">
+              <div className="flex items-center gap-3 p-3 rounded-lg" 
+                style={{ background: `linear-gradient(45deg, ${TIER_COLORS['A*'].from}, ${TIER_COLORS['A*'].to})` }}>
+                <span className="text-lg font-bold px-2 py-1 rounded bg-white/20">A*</span>
+                <p className="text-sm text-black leading-relaxed">
                   <span className="font-bold">The best exercises</span> for building strength and muscle. These are your key movements like <span className="font-bold">squats and deadlifts</span> that work multiple muscles at once.
                 </p>
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'linear-gradient(45deg, #14B8A6, #0D9488)' }}>
-                <span className="text-lg font-bold px-2 py-1 rounded bg-white/20 border-2 border-black shadow-sm">A</span>
-                <p className="text-sm text-white">
+              <div className="flex items-center gap-3 p-3 rounded-lg" 
+                style={{ background: `linear-gradient(45deg, ${TIER_COLORS['A'].from}, ${TIER_COLORS['A'].to})` }}>
+                <span className="text-lg font-bold px-2 py-1 rounded bg-white/20">A</span>
+                <p className="text-sm text-white leading-relaxed">
                   <span className="font-bold">Great exercises</span> that target specific muscle groups effectively. These <span className="font-bold">support your A* movements</span> and are crucial for a well-rounded workout.
                 </p>
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'linear-gradient(45deg, #6366F1, #4F46E5)' }}>
-                <span className="text-lg font-bold px-2 py-1 rounded bg-white/20 border-2 border-black shadow-sm">B</span>
-                <p className="text-sm text-white">
+              <div className="flex items-center gap-3 p-3 rounded-lg" 
+                style={{ background: `linear-gradient(45deg, ${TIER_COLORS['B'].from}, ${TIER_COLORS['B'].to})` }}>
+                <span className="text-lg font-bold px-2 py-1 rounded bg-white/20">B</span>
+                <p className="text-sm text-white leading-relaxed">
                   Either <span className="font-bold">beginner-friendly exercises</span> to help you progress, or movements that are <span className="font-bold">less efficient</span> for muscle growth but can add variety to your workout.
                 </p>
               </div>
