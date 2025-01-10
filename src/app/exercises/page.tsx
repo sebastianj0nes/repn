@@ -12,6 +12,7 @@ import { getExerciseDetails } from '@/lib/data/exercises'
 import { FilterControls } from '@/components/exercises/FilterControls'
 import { TierExplanationDialog } from '@/components/exercises/TierExplanationDialog'
 import { FilterProvider } from '@/contexts/FilterContext'
+import { FilterSection } from '@/components/exercises/FilterSection'
 
 interface Exercise {
   id: string
@@ -111,16 +112,20 @@ export default function ExercisesPage() {
           <TierExplanationDialog />
         </div>
 
-        <FilterControls
-          selectedMuscleGroup={selectedMuscleGroup}
-          selectedTier={selectedTier}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-          onMuscleGroupChange={setSelectedMuscleGroup}
-          onTierChange={setSelectedTier}
-          onSortChange={setSortBy}
-          onSortDirectionChange={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
-        />
+        <FilterSection>
+          <div className="space-y-4">
+            <FilterControls
+              selectedMuscleGroup={selectedMuscleGroup}
+              selectedTier={selectedTier}
+              sortBy={sortBy}
+              sortDirection={sortDirection}
+              onMuscleGroupChange={setSelectedMuscleGroup}
+              onTierChange={setSelectedTier}
+              onSortChange={setSortBy}
+              onSortDirectionChange={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+            />
+          </div>
+        </FilterSection>
 
         <div className="pt-4 grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-6">
           <AnimatePresence mode="popLayout">

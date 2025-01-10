@@ -35,6 +35,7 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
         max-w-md p-0 rounded-lg shadow-lg overflow-hidden border border-black/20
         data-[state=open]:animate-slideIn
         data-[state=closed]:animate-slideOut
+        max-h-[90vh] flex flex-col
         ${exercise.tier === 'A*' 
           ? 'bg-gradient-to-br from-yellow-400/90 via-yellow-200/90 to-yellow-400/90 border-2 border-yellow-500'
           : exercise.tier === 'A'
@@ -44,15 +45,14 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
           : 'bg-white'
         }
       `}>
-        <button 
-          onClick={onClose}
-          className="absolute right-4 top-4 z-50 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none"
-        >
-          <X className="h-4 w-4" />
-        </button>
-
-        {/* Header Section */}
-        <div className="p-6 pb-0">
+        <div className="sticky top-0 z-10 bg-inherit pt-6 pb-4 px-6">
+          <button 
+            onClick={onClose}
+            className="absolute right-4 top-4 z-50 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          
           <DialogHeader className="mb-4">
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
@@ -86,35 +86,34 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
               </div>
             </motion.div>
           </DialogHeader>
-
-          {/* Image Section with border */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="relative h-48 w-full bg-white rounded-lg shadow-inner mb-6 border border-black/20"
-          >
-            {exercise.image_url ? (
-              <Image
-                src={exercise.image_url}
-                alt={exercise.name}
-                fill
-                className="object-contain p-2"
-                unoptimized={exercise.image_url?.endsWith('.gif')}
-                priority={exercise.image_url?.endsWith('.gif')}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <Info className="w-12 h-12 text-gray-400" />
-              </div>
-            )}
-          </motion.div>
         </div>
 
-        {/* Content Section */}
-        <ScrollArea className="max-h-[40vh]">
-          <div className="p-6 pt-0 space-y-4">
-            {/* Overview Section with border */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="relative h-48 w-full bg-white rounded-lg shadow-inner mb-6 border border-black/20"
+            >
+              {exercise.image_url ? (
+                <Image
+                  src={exercise.image_url}
+                  alt={exercise.name}
+                  fill
+                  className="object-contain p-2"
+                  unoptimized={exercise.image_url?.endsWith('.gif')}
+                  priority={exercise.image_url?.endsWith('.gif')}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <Info className="w-12 h-12 text-gray-400" />
+                </div>
+              )}
+            </motion.div>
+          </div>
+
+          <div className="p-6 space-y-4">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -126,14 +125,12 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
               </p>
             </motion.div>
 
-            {/* Combined Tips Section */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
               className="grid grid-cols-1 gap-4"
             >
-              {/* Key Points with border */}
               <div className="bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-black/20">
                 <div className="flex items-center gap-2 mb-3">
                   <CheckCircle2 className="h-5 w-5 text-primary" />
@@ -154,7 +151,6 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
                 </div>
               </div>
 
-              {/* Pro Tips with border */}
               <div className="bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-black/20">
                 <div className="flex items-center gap-2 mb-3">
                   <Lightbulb className="h-5 w-5 text-primary" />
@@ -176,10 +172,9 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
               </div>
             </motion.div>
           </div>
-        </ScrollArea>
+        </div>
 
-        {/* Footer Button Section with border-top */}
-        <div className="p-6 pt-4 bg-white/80 backdrop-blur-sm border-t border-black/20">
+        <div className="sticky bottom-0 p-6 pt-4 bg-white/80 backdrop-blur-sm border-t border-black/20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
