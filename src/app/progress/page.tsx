@@ -4,13 +4,23 @@ import { useState, useRef, useEffect, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, Smile, Frown, Meh, Gauge, ImageIcon } from 'lucide-react'
+import { Dumbbell, Smile, Frown, Meh, Gauge, ImageIcon, Star, Scale, Target, Timer, Trophy, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/lib/database.types'
 import { UserContext } from '../UserContext'
 import Link from 'next/link'
 import { ImageHandler } from '@/lib/utils/imageHandler'
+import { format } from 'date-fns'
+import {
+  backExercises,
+  chestExercises,
+  shoulderExercises,
+  bicepExercises,
+  tricepExercises,
+  coreExercises,
+  legExercises
+} from '@/lib/utils/exerciseImages'
 
 export default function ProgressPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
@@ -167,6 +177,20 @@ export default function ProgressPage() {
 
   const workoutDetail = selectedDate ? workoutDetails[selectedDate.toISOString().split('T')[0]] : null
 
+  const getExerciseGifPath = (exerciseName: string): string | undefined => {
+    const allExercises = {
+      ...backExercises,
+      ...chestExercises,
+      ...shoulderExercises,
+      ...bicepExercises,
+      ...tricepExercises,
+      ...coreExercises,
+      ...legExercises
+    };
+    
+    return allExercises[exerciseName as keyof typeof allExercises];
+  };
+
   if (!session?.user) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)]">
@@ -250,99 +274,202 @@ export default function ProgressPage() {
                   transition={{ duration: 0.3 }}
                 >
                   <Card className="bg-white shadow-lg rounded-lg overflow-hidden">
-                    <CardHeader className="bg-primary text-primary-foreground">
-                      <CardTitle className="text-xl font-semibold">
-                        {selectedDate ? formatDate(selectedDate) : 'No date selected'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 md:p-6">
-                      <div className="flex flex-col gap-6">
-                        <div className="w-full space-y-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Dumbbell className="h-6 w-6 text-secondary" />
-                              <span className="text-lg font-medium text-primary">{workoutDetail.muscleGroup}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-primary">Feeling:</span>
-                              {getEmojiForFeeling(workoutDetail.feeling)}
-                            </div>
+                    {/* Image Section - Full Width at Top */}
+                    <div className="w-full">
+                      {workoutDetail.image ? (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="relative aspect-[4/3] w-full flex items-center justify-center bg-background"
+                        >
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={workoutDetail.image}
+                              alt="Workout progress"
+                              fill
+                              className="object-cover"
+                              sizes="100vw"
+                              priority
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30" />
                           </div>
-                          {workoutDetail.userWeight && (
-                            <motion.div 
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="flex items-center gap-2 bg-muted/50 p-2 rounded-md"
-                            >
-                              <div className="flex items-center gap-2">
-                                <Gauge className="h-5 w-5 text-[#663399]" />
-                                <span className="text-sm font-medium">Weight:</span>
-                                <span className="text-sm font-bold text-[#663399]">
-                                  {workoutDetail.userWeight} kg
+                        </motion.div>
+                      ) : (
+                        <div className="aspect-[4/3] w-full flex items-center justify-center bg-background">
+                          <div className="text-center text-muted-foreground">
+                            <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                            <p>No progress photo</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Workout Details Section */}
+                    <div className="p-4">
+                      {/* Header Section */}
+                      <div className="flex items-center justify-between mb-6 pb-3 border-b">
+                        <motion.div 
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex items-center gap-2"
+                        >
+                          <Target className="h-5 w-5 text-primary" />
+                          <h2 className="text-xl font-bold text-primary">
+                            {format(selectedDate || new Date(), 'dd MMM yyyy')}
+                          </h2>
+                        </motion.div>
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                          className="flex items-center gap-2"
+                        >
+                          <span className="text-sm text-muted-foreground">Feeling:</span>
+                          {getEmojiForFeeling(workoutDetail.feeling)}
+                        </motion.div>
+                      </div>
+
+                      {/* Quick Stats Section */}
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-8"
+                      >
+                        <div className="grid grid-cols-2 gap-3">
+                          {/* Muscle Groups */}
+                          <div className="bg-primary/5 rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Dumbbell className="h-4 w-4 text-primary" />
+                              <h3 className="text-sm font-medium text-primary">Muscle Groups</h3>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {workoutDetail.muscleGroup.split(',').map((muscle: string, index: number) => (
+                                <span key={index} className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                                  {muscle.trim()}
                                 </span>
-                              </div>
-                            </motion.div>
-                          )}
-                          <div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-                            <strong>Set of the day:</strong> {formatSotd(workoutDetail.sotd)}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                        <div className="w-full">
-                          {workoutDetail.image && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.5 }}
-                              className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] rounded-lg overflow-hidden"
-                            >
-                              <Image
-                                src={workoutDetail.image}
-                                alt="Workout selfie"
-                                fill
-                                className="object-contain rounded-lg"
-                              />
-                            </motion.div>
+
+                          {/* Bodyweight if exists */}
+                          {workoutDetail.userWeight && (
+                            <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Scale className="h-4 w-4 text-primary" />
+                                <h3 className="text-sm font-medium text-primary">Bodyweight</h3>
+                              </div>
+                              <p className="text-lg font-bold text-primary">{workoutDetail.userWeight} kg</p>
+                            </div>
                           )}
                         </div>
-                        <div className="w-full space-y-4">
+                      </motion.div>
+
+                      {/* Divider */}
+                      <div className="relative my-8">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-muted-foreground/20"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-background px-2 text-sm text-muted-foreground">Workout Details</span>
+                        </div>
+                      </div>
+
+                      {/* SOTD and Exercises Section */}
+                      <div className="space-y-6">
+                        {/* SOTD Card */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                          className="bg-secondary/10 rounded-lg p-4"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                            <h3 className="font-medium text-secondary">Set of the Day</h3>
+                          </div>
+                          <p className="text-lg font-semibold">{formatSotd(workoutDetail.sotd)}</p>
+                        </motion.div>
+
+                        {/* Exercises Section */}
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Trophy className="h-5 w-5 text-primary" />
+                            <h3 className="text-lg font-semibold text-primary">Exercises</h3>
+                          </div>
                           {workoutDetail.exercises.map((exercise: { name: string; sets: any[] }, index: number) => (
-                            <motion.div 
+                            <motion.div
                               key={index}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.3, delay: index * 0.1 }}
-                              className="bg-gray-50 p-4 rounded-md shadow"
+                              transition={{ delay: 0.1 * index }}
+                              className="bg-muted/50 rounded-lg overflow-hidden"
                             >
-                              <h3 className="font-semibold text-lg mb-2">{exercise.name}</h3>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {exercise.sets.map((set: any, setIndex: number) => (
-                                  <div key={setIndex} className="flex-1 bg-white p-2 rounded border border-gray-200">
-                                    <span className="font-medium">Set {setIndex + 1}:</span>{' '}
-                                    {set.weight && set.reps ? (
-                                      // Weights exercise
-                                      <span>{set.weight}kg x {set.reps}</span>
-                                    ) : set.reps ? (
-                                      // Bodyweight exercise
-                                      <span>{set.reps} reps</span>
-                                    ) : set.duration ? (
-                                      // Time-based exercise
-                                      <span>{set.duration} seconds</span>
-                                    ) : (
-                                      <span>N/A</span>
-                                    )}
-                                    {set.is_dropset && (
-                                      <span className="text-blue-500 ml-2">
-                                        → {set.dropset_weight}kg x {set.dropset_reps} (Dropset)
-                                      </span>
-                                    )}
+                              <div className="p-4 bg-primary/5">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative w-16 h-16 rounded-md overflow-hidden shrink-0 border">
+                                    <Image
+                                      src={getExerciseGifPath(exercise.name) || '/exercises/default.gif'}
+                                      alt={exercise.name}
+                                      fill
+                                      className="object-cover"
+                                      unoptimized={true}
+                                    />
                                   </div>
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-lg">{exercise.name}</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                      {exercise.sets.length} {exercise.sets.length === 1 ? 'set' : 'sets'}
+                                    </p>
+                                  </div>
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                              </div>
+                              <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {exercise.sets.map((set: any, setIndex: number) => (
+                                  <motion.div
+                                    key={setIndex}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.05 * setIndex }}
+                                    className="bg-background rounded-md p-3 shadow-sm"
+                                  >
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-xs text-muted-foreground">Set {setIndex + 1}</span>
+                                      {set.is_dropset && (
+                                        <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary rounded-full">
+                                          Drop Set
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="font-medium">
+                                      {set.duration ? (
+                                        <div className="flex items-center gap-1">
+                                          <Timer className="h-3 w-3 text-primary" />
+                                          <span>{set.duration}s</span>
+                                        </div>
+                                      ) : (
+                                        <span>
+                                          {set.weight && set.reps ? (
+                                            `${set.weight}kg × ${set.reps}`
+                                          ) : set.reps ? (
+                                            `${set.reps} reps`
+                                          ) : 'N/A'}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {set.is_dropset && (
+                                      <div className="mt-1 text-sm text-primary">
+                                        → {set.dropset_weight}kg × {set.dropset_reps}
+                                      </div>
+                                    )}
+                                  </motion.div>
                                 ))}
                               </div>
                             </motion.div>
                           ))}
                         </div>
                       </div>
-                    </CardContent>
+                    </div>
                   </Card>
                 </motion.div>
               ) : (

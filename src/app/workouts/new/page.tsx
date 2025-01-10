@@ -45,6 +45,8 @@ import {
   coreExercises,
   legExercises
 } from '@/lib/utils/exerciseImages'
+import { cn } from '@/lib/utils'
+import { getExerciseDetails } from '@/lib/data/exercises'
 
 interface Set {
   weight?: number | null;
@@ -841,29 +843,119 @@ export default function NewWorkoutPage() {
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select an exercise" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <ScrollArea className="h-[300px]">
+                  <SelectContent className="max-h-[400px]">
+                    <ScrollArea className="h-[400px]">
                       {workout?.muscleGroups.map((group, index) => (
                         <div key={group}>
                           {index > 0 && <Separator className="my-2" />}
                           <SelectItem 
                             value={`group-${group}`} 
                             disabled 
-                            className="font-semibold text-primary"
+                            className="font-bold text-lg text-center py-2 text-primary border-b border-gray-200"
                           >
                             {group}
                           </SelectItem>
                           {availableExercises
                             .filter(exercise => exercise.muscle_group === group)
-                            .map(exercise => (
-                              <SelectItem 
-                                key={exercise.id} 
-                                value={exercise.id} 
-                                className="pl-4 cursor-pointer hover:bg-gray-100 data-[state=checked]:bg-gray-200 transition-colors"
-                              >
-                                {exercise.name}
-                              </SelectItem>
-                            ))}
+                            // Sort by tier (A* first, then A, then B)
+                            .sort((a, b) => {
+                              const tierOrder = { 'A*': 1, 'A': 2, 'B': 3 };
+                              const tierA = getExerciseDetails(a.name).tier;
+                              const tierB = getExerciseDetails(b.name).tier;
+                              return tierOrder[tierA as keyof typeof tierOrder] - tierOrder[tierB as keyof typeof tierOrder];
+                            })
+                            .map(exercise => {
+                              const exerciseGif = getExerciseGifPath(exercise.name);
+                              const exerciseDetails = getExerciseDetails(exercise.name);
+                              const tier = exerciseDetails.tier;
+                              
+                              let tierStyles = {
+                                container: '',
+                                badge: '',
+                                color: ''
+                              };
+
+                              switch(tier) {
+                                case 'A*':
+                                  tierStyles = {
+                                    container: 'bg-gradient-to-br from-[#FFD700] via-[#FFF6A3] to-[#FFD700]',
+                                    badge: 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-black',
+                                    color: 'bg-yellow-500'
+                                  };
+                                  break;
+                                case 'A':
+                                  tierStyles = {
+                                    container: 'bg-gradient-to-r from-green-400/20 via-green-300/20 to-green-400/20',
+                                    badge: 'bg-gradient-to-r from-green-400 to-green-500 text-white',
+                                    color: 'bg-green-500'
+                                  };
+                                  break;
+                                case 'B':
+                                  tierStyles = {
+                                    container: 'bg-gradient-to-r from-blue-400/20 via-blue-300/20 to-blue-400/20',
+                                    badge: 'bg-gradient-to-r from-blue-400 to-blue-500 text-white',
+                                    color: 'bg-blue-500'
+                                  };
+                                  break;
+                              }
+
+                              return (
+                                <SelectItem 
+                                  key={exercise.id} 
+                                  value={exercise.id} 
+                                  className={cn(
+                                    "pl-4 cursor-pointer hover:bg-gray-100/50 transition-colors",
+                                    "flex items-center gap-3 py-3",
+                                    tierStyles.container,
+                                    tier === 'A*' && "scale-[1.02] font-medium"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-3 w-full">
+                                    <div className="relative w-16 h-16 rounded-md overflow-hidden shrink-0 border border-black">
+                                      <Image
+                                        src={exerciseGif || '/exercises/default.gif'}
+                                        alt={exercise.name}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized={true}
+                                      />
+                                    </div>
+                                    <div className="flex flex-col flex-1">
+                                      <span className="font-medium">{exercise.name}</span>
+                                      <div className="flex items-center gap-2">
+                                        <div className={cn(
+                                          "flex items-center gap-2 px-2 py-0.5 rounded text-xs",
+                                          tierStyles.color,
+                                          "text-white font-bold"
+                                        )}>
+                                          {tier}
+                                        </div>
+                                        <span className="text-sm text-muted-foreground">
+                                          {exercise.exercise_type === 'weights' && (
+                                            <div className="flex items-center gap-1">
+                                              <Barbell className="h-4 w-4" />
+                                              <span>Weight-based</span>
+                                            </div>
+                                          )}
+                                          {exercise.exercise_type === 'bodyweight' && (
+                                            <div className="flex items-center gap-1">
+                                              <PersonSimpleWalk className="h-4 w-4" />
+                                              <span>Bodyweight</span>
+                                            </div>
+                                          )}
+                                          {exercise.exercise_type === 'time' && (
+                                            <div className="flex items-center gap-1">
+                                              <Timer className="h-4 w-4" />
+                                              <span>Time-based</span>
+                                            </div>
+                                          )}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
                         </div>
                       ))}
                     </ScrollArea>

@@ -19,6 +19,12 @@ const muscleGroups = ['All', 'Back', 'Bicep', 'Shoulder', 'Tricep', 'Chest', 'Co
 const tiers = ['All', 'A*', 'A', 'B']
 const sortOptions = ['Name', 'Tier']
 
+const TIER_ORDER = {
+  'A*': 1,
+  'A': 2,
+  'B': 3
+}
+
 export function FilterControls({
   selectedMuscleGroup,
   selectedTier,
@@ -111,7 +117,12 @@ export function FilterControls({
                   key={option}
                   size="sm"
                   variant="outline"
-                  onClick={() => onSortChange(option)}
+                  onClick={() => {
+                    onSortChange(option)
+                    if (option === 'Tier' && sortDirection === 'asc') {
+                      onSortDirectionChange()
+                    }
+                  }}
                   className={cn(
                     "h-8 px-3 text-sm transition-colors",
                     sortBy === option 
