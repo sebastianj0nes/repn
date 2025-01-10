@@ -843,8 +843,8 @@ export default function NewWorkoutPage() {
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select an exercise" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-[400px]">
-                    <ScrollArea className="h-[400px]">
+                  <SelectContent className="max-h-[320px]">
+                    <ScrollArea className="h-[320px]">
                       {workout?.muscleGroups.map((group, index) => (
                         <div key={group}>
                           {index > 0 && <Separator className="my-2" />}
