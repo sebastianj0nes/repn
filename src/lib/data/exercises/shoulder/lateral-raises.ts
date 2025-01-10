@@ -5,7 +5,7 @@ export const lateralRaises: ExerciseTemplate = {
   name: 'Lateral Raises',
   muscle_group: 'Shoulder',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'An isolation exercise that specifically targets the lateral deltoids, crucial for building shoulder width and stability.',
   keyPoints: [
     'Slight bend in elbows throughout',

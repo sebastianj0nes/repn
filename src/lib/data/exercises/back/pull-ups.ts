@@ -5,7 +5,7 @@ export const pullUps: ExerciseTemplate = {
   name: 'Pull-Ups',
   muscle_group: 'Back',
   exercise_type: 'bodyweight',
-  tier: 'S',
+  tier: 'A*',
   overview: 'One of the most effective upper body exercises, developing exceptional back strength and overall pulling power.',
   keyPoints: [
     'Start from dead hang position',

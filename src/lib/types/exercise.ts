@@ -1,5 +1,5 @@
 export type MuscleGroup = 'Back' | 'Bicep' | 'Shoulder' | 'Tricep' | 'Chest' | 'Core' | 'Legs';
-export type ExerciseTier = 'S' | 'A' | 'B' | 'C' | 'D';
+export type ExerciseTier = 'A*' | 'A' | 'B' | 'C' | 'D';
 export type ExerciseType = 'weights' | 'bodyweight' | 'time';
 
 export interface ExerciseTemplate {
@@ -20,7 +20,7 @@ export interface ExerciseTemplate {
 }
 
 export const getTierColor = (tier: ExerciseTier): string => ({
-  'S': '#FF4081',
+  'A*': '#FF4081',
   'A': '#7C4DFF',
   'B': '#448AFF',
   'C': '#69F0AE',
@@ -33,7 +33,7 @@ export const exerciseTemplate: ExerciseTemplate = {
   name: 'Exercise Name',
   muscle_group: 'Back',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: `
     Provide a comprehensive overview of the exercise here. Include:
     - What muscles it targets

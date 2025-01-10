@@ -5,7 +5,7 @@ export const inclineBenchPress: ExerciseTemplate = {
   name: 'Incline Bench Press',
   muscle_group: 'Chest',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'A compound movement that targets the upper chest while engaging shoulders and triceps.',
   keyPoints: [
     'Set bench angle 30-45 degrees',

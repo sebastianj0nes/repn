@@ -5,7 +5,7 @@ export const abRoller: ExerciseTemplate = {
   name: 'Ab Roller',
   muscle_group: 'Core',
   exercise_type: 'bodyweight',
-  tier: 'S',
+  tier: 'A*',
   overview: 'A challenging core exercise that develops strength and stability throughout the entire midsection.',
   keyPoints: [
     'Keep core engaged throughout',

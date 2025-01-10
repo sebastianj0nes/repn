@@ -5,7 +5,7 @@ export const skullCrushers: ExerciseTemplate = {
   name: 'Skull Crushers',
   muscle_group: 'Tricep',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'An intense isolation exercise that effectively targets all three heads of the triceps.',
   keyPoints: [
     'Keep elbows pointed forward',

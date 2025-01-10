@@ -1,15 +1,7 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown, Filter, SortAsc } from "lucide-react"
 import { getTierColor } from "@/lib/types/exercise"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
 
 interface FilterControlsProps {
   selectedMuscleGroup: string
@@ -23,8 +15,8 @@ interface FilterControlsProps {
 }
 
 const muscleGroups = ['All', 'Back', 'Bicep', 'Shoulder', 'Tricep', 'Chest', 'Core', 'Legs']
-const tiers = ['All', 'S', 'A', 'B']
-const sortOptions = ['Tier', 'Name']
+const tiers = ['All', 'A*', 'A', 'B']
+const sortOptions = ['Name', 'Tier']
 
 export function FilterControls({
   selectedMuscleGroup,
@@ -37,140 +29,117 @@ export function FilterControls({
   onSortDirectionChange
 }: FilterControlsProps) {
   return (
-    <div 
-      className="flex items-center gap-2 sm:gap-4 mb-6 w-full max-w-full overflow-x-auto bg-background"
-      onClick={(e) => e.stopPropagation()}
-      onMouseDown={(e) => e.stopPropagation()}
-      onPointerDown={(e) => e.stopPropagation()}
-    >
-      {/* Filters Section */}
-      <div className="flex items-center gap-2 sm:gap-4">
-        <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground">
-          <Filter className="h-4 w-4" />
-          <span className="text-sm font-medium hidden sm:inline">Filters</span>
-        </div>
+    <div className="w-full bg-white px-4 py-4">
+      <div className="max-w-7xl mx-auto space-y-4">
+        {/* Filter Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Filter className="h-4 w-4" />
+            <span>Filter exercises</span>
+          </div>
 
-        <div className="flex items-center gap-1 sm:gap-2">
-          <Select value={selectedMuscleGroup} onValueChange={onMuscleGroupChange}>
-            <SelectTrigger 
-              id="muscle-group" 
-              className="w-[90px] sm:w-[110px]"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              <SelectValue placeholder="Muscle" />
-            </SelectTrigger>
-            <SelectContent 
-              onPointerDownOutside={(e) => e.preventDefault()} 
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
+          {/* Muscle Groups */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">Muscle Group</label>
+            <div className="flex flex-wrap gap-2">
               {muscleGroups.map((group) => (
-                <SelectItem 
-                  key={group} 
-                  value={group}
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
+                <Button
+                  key={group}
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onMuscleGroupChange(group)}
+                  className={cn(
+                    "h-8 px-3 text-sm transition-colors",
+                    selectedMuscleGroup === group 
+                      ? "bg-gray-900 text-white border-gray-900 hover:bg-gray-800" 
+                      : "hover:bg-blue-50"
+                  )}
                 >
                   {group}
-                </SelectItem>
+                </Button>
               ))}
-            </SelectContent>
-          </Select>
+            </div>
+          </div>
 
-          <Select value={selectedTier} onValueChange={onTierChange}>
-            <SelectTrigger 
-              id="tier" 
-              className="w-[70px] sm:w-[80px]"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              <SelectValue placeholder="Tier" />
-            </SelectTrigger>
-            <SelectContent 
-              onPointerDownOutside={(e) => e.preventDefault()} 
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              {tiers.map((tier) => (
-                <SelectItem 
-                  key={tier} 
-                  value={tier}
-                  className={tier !== 'All' ? 'font-bold' : ''}
-                  style={tier !== 'All' ? { color: getTierColor(tier as any) } : {}}
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  {tier}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Tiers */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">Exercise Tier</label>
+            <div className="flex gap-2">
+              {tiers.map((tier) => {
+                const getTierStyle = () => {
+                  if (selectedTier === tier) {
+                    if (tier === 'All') {
+                      return "bg-gray-900 text-white border-gray-900 hover:bg-gray-800"
+                    }
+                    if (tier === 'A*') {
+                      return "bg-gradient-to-r from-[#FFD700] to-[#FFB700] text-black border-[#FFB700]"
+                    }
+                    if (tier === 'A') {
+                      return "bg-gradient-to-r from-[#14B8A6] to-[#0D9488] text-white border-[#0D9488]"
+                    }
+                    if (tier === 'B') {
+                      return "bg-gradient-to-r from-[#6366F1] to-[#4F46E5] text-white border-[#4F46E5]"
+                    }
+                  }
+                  return "hover:bg-blue-50"
+                }
+
+                return (
+                  <Button
+                    key={tier}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onTierChange(tier)}
+                    className={cn(
+                      "h-8 px-3 text-sm transition-colors font-semibold",
+                      getTierStyle()
+                    )}
+                  >
+                    {tier}
+                  </Button>
+                )
+              })}
+            </div>
+          </div>
         </div>
-      </div>
 
-      <Separator orientation="vertical" className="h-8" />
-
-      {/* Sort Section */}
-      <div className="flex items-center gap-2 sm:gap-4">
-        <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground">
-          <SortAsc className="h-4 w-4" />
-          <span className="text-sm font-medium hidden sm:inline">Sort</span>
-        </div>
-
-        <div className="flex items-center gap-1 sm:gap-2">
-          <Select value={sortBy} onValueChange={onSortChange}>
-            <SelectTrigger 
-              id="sort-by" 
-              className="w-[80px] sm:w-[90px]"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              <SelectValue placeholder="Sort" />
-            </SelectTrigger>
-            <SelectContent 
-              onPointerDownOutside={(e) => e.preventDefault()} 
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
+        {/* Sort Controls - Separated with border */}
+        <div className="pt-2 border-t">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <SortAsc className="h-4 w-4" />
+              <span>Sort exercises</span>
+            </div>
+            <div className="flex items-center gap-2">
               {sortOptions.map((option) => (
-                <SelectItem 
-                  key={option} 
-                  value={option}
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
+                <Button
+                  key={option}
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onSortChange(option)}
+                  className={cn(
+                    "h-8 px-3 text-sm transition-colors",
+                    sortBy === option 
+                      ? "bg-gray-900 text-white border-gray-900 hover:bg-gray-800" 
+                      : "hover:bg-blue-50"
+                  )}
                 >
                   {option}
-                </SelectItem>
+                </Button>
               ))}
-            </SelectContent>
-          </Select>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSortDirectionChange();
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="h-9 w-9 sm:h-10 sm:w-10"
-            aria-label={`Sort ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
-          >
-            <ArrowUpDown className={`h-4 w-4 transform ${
-              sortDirection === 'desc' ? 'rotate-180' : ''
-            } transition-transform`} />
-          </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSortDirectionChange}
+                className="h-8 w-8 p-0"
+                aria-label={`Sort ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
+              >
+                <ArrowUpDown className={`h-4 w-4 transform ${
+                  sortDirection === 'desc' ? 'rotate-180' : ''
+                } transition-transform`} />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

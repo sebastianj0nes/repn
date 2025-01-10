@@ -10,6 +10,8 @@ import { getExerciseStats } from '@/lib/api/exercises'
 import { ExerciseTier } from '@/lib/types/exercise'
 import { getExerciseDetails } from '@/lib/data/exercises'
 import { FilterControls } from '@/components/exercises/FilterControls'
+import { TierExplanationDialog } from '@/components/exercises/TierExplanationDialog'
+import { FilterProvider } from '@/contexts/FilterContext'
 
 interface Exercise {
   id: string
@@ -85,7 +87,7 @@ export default function ExercisesPage() {
           : b.name.localeCompare(a.name)
       } else {
         // Sort by tier (S > A > B)
-        const tierOrder = { S: 3, A: 2, B: 1 }
+        const tierOrder = { 'A*': 3, 'A': 2, 'B': 1 }
         const tierDiff = (tierOrder[b.tier as keyof typeof tierOrder] || 0) - 
                         (tierOrder[a.tier as keyof typeof tierOrder] || 0)
         return sortDirection === 'asc' ? -tierDiff : tierDiff
@@ -101,31 +103,37 @@ export default function ExercisesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 pb-20">
-      <h1 className="text-2xl font-bold mb-6">Exercise Library</h1>
-      
-      <FilterControls
-        selectedMuscleGroup={selectedMuscleGroup}
-        selectedTier={selectedTier}
-        sortBy={sortBy}
-        sortDirection={sortDirection}
-        onMuscleGroupChange={setSelectedMuscleGroup}
-        onTierChange={setSelectedTier}
-        onSortChange={setSortBy}
-        onSortDirectionChange={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
-      />
+    <FilterProvider>
+      <div className="container mx-auto px-4 py-6 pb-20">
+        <h1 className="text-2xl font-bold mb-4">Exercise Library</h1>
+        
+        <div className="mb-2">
+          <TierExplanationDialog />
+        </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-6">
-        <AnimatePresence mode="popLayout">
-          {filteredAndSortedExercises.map((exercise) => (
-            <ExerciseCard
-              key={exercise.id}
-              exercise={exercise}
-              stats={exerciseStats[exercise.id]}
-            />
-          ))}
-        </AnimatePresence>
+        <FilterControls
+          selectedMuscleGroup={selectedMuscleGroup}
+          selectedTier={selectedTier}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          onMuscleGroupChange={setSelectedMuscleGroup}
+          onTierChange={setSelectedTier}
+          onSortChange={setSortBy}
+          onSortDirectionChange={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+        />
+
+        <div className="pt-4 grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-6">
+          <AnimatePresence mode="popLayout">
+            {filteredAndSortedExercises.map((exercise) => (
+              <ExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                stats={exerciseStats[exercise.id]}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
+    </FilterProvider>
   )
 } 

@@ -5,7 +5,7 @@ export const shoulderPressBarbell: ExerciseTemplate = {
   name: 'Shoulder Press - Barbell',
   muscle_group: 'Shoulder',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'A compound movement that builds overall shoulder strength and mass while engaging multiple supporting muscle groups.',
   keyPoints: [
     'Keep core tight',

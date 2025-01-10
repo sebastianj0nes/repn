@@ -5,7 +5,7 @@ export const overheadTricepExtensions: ExerciseTemplate = {
   name: 'Overhead Tricep Extensions',
   muscle_group: 'Tricep',
   exercise_type: 'weights',
-  tier: 'A',
+  tier: 'A*',
   overview: 'An isolation exercise that effectively targets all three heads of the triceps with emphasis on the long head.',
   keyPoints: [
     'Keep elbows close to head',

@@ -5,7 +5,7 @@ export const deadlifts: ExerciseTemplate = {
   name: 'Deadlifts',
   muscle_group: 'Back',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'A fundamental compound exercise that targets multiple muscle groups, primarily focusing on the posterior chain including the back, glutes, and hamstrings.',
   keyPoints: [
     'Maintain neutral spine throughout movement',

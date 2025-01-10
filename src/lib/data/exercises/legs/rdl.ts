@@ -5,7 +5,7 @@ export const rdl: ExerciseTemplate = {
   name: 'RDL',
   muscle_group: 'Legs',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'A hip-hinge movement that targets the posterior chain with emphasis on hamstrings and glutes.',
   keyPoints: [
     'Maintain neutral spine',

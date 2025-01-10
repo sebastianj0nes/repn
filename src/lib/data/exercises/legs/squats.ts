@@ -5,7 +5,7 @@ export const squats: ExerciseTemplate = {
   name: 'Squats',
   muscle_group: 'Legs',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'The king of leg exercises, developing overall lower body strength and muscle mass.',
   keyPoints: [
     'Keep chest up',

@@ -5,7 +5,7 @@ export const concentrationCurls: ExerciseTemplate = {
   name: 'Concentration Curls',
   muscle_group: 'Bicep',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'An isolation exercise that maximizes bicep peak contraction and eliminates momentum.',
   keyPoints: [
     'Keep elbow pressed against inner thigh',

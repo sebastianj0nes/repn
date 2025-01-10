@@ -5,7 +5,7 @@ export const plank: ExerciseTemplate = {
   name: 'Plank',
   muscle_group: 'Core',
   exercise_type: 'bodyweight',
-  tier: 'S',
+  tier: 'A*',
   overview: 'A fundamental isometric core exercise that builds overall core stability and endurance.',
   keyPoints: [
     'Maintain straight body line',

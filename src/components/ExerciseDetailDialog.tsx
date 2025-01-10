@@ -7,9 +7,10 @@ import {
 import { Button } from "@/components/ui/button"
 import Image from 'next/image'
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Star, Plus, Info, X } from "lucide-react"
+import { Star, Plus, Info, X, CheckCircle2, Lightbulb } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ExerciseTier, getTierColor } from '@/lib/types/exercise'
+import { motion } from "framer-motion"
 
 interface ExerciseDetailDialogProps {
   exercise: {
@@ -31,56 +32,68 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`
-        max-w-md p-6 rounded-lg shadow-lg
-        ${exercise.tier === 'S' 
-          ? 'bg-gradient-to-br from-yellow-400 via-yellow-200 to-yellow-400 border-2 border-yellow-500'
+        max-w-md p-0 rounded-lg shadow-lg overflow-hidden border border-black/20
+        data-[state=open]:animate-slideIn
+        data-[state=closed]:animate-slideOut
+        ${exercise.tier === 'A*' 
+          ? 'bg-gradient-to-br from-yellow-400/90 via-yellow-200/90 to-yellow-400/90 border-2 border-yellow-500'
           : exercise.tier === 'A'
-          ? 'bg-gradient-to-br from-green-400 via-green-200 to-green-400 border-2 border-green-500'
+          ? 'bg-gradient-to-br from-green-400/90 via-green-200/90 to-green-400/90 border-2 border-green-500'
           : exercise.tier === 'B'
-          ? 'bg-gradient-to-br from-blue-400 via-blue-200 to-blue-400 border-2 border-blue-500'
+          ? 'bg-gradient-to-br from-blue-400/90 via-blue-200/90 to-blue-400/90 border-2 border-blue-500'
           : 'bg-white'
         }
       `}>
         <button 
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none"
+          className="absolute right-4 top-4 z-50 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <DialogHeader className="mb-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className={`
-              text-xl font-bold
-              ${exercise.tier === 'S' ? 'text-yellow-900' : ''}
-            `}>
-              {exercise.name}
-            </DialogTitle>
-            <Badge 
-              variant="outline" 
-              className={`
-                font-bold px-3 py-1
-                ${exercise.tier === 'S' 
-                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-transparent' 
-                  : ''}
-              `}
+        {/* Header Section */}
+        <div className="p-6 pb-0">
+          <DialogHeader className="mb-4">
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
             >
-              {exercise.tier} TIER
-            </Badge>
-          </div>
-          <p className={`
-            text-sm mt-1
-            ${exercise.tier === 'S' ? 'text-yellow-800' : 'text-muted-foreground'}
-          `}>
-            {exercise.muscle_group}
-          </p>
-        </DialogHeader>
+              <DialogTitle className="text-xl font-bold text-gray-900">
+                {exercise.name}
+              </DialogTitle>
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex-1"></div>
+                <p className="text-sm text-gray-600 flex-1">
+                  {exercise.muscle_group}
+                </p>
+                <div className="flex-1 flex justify-end">
+                  <Badge 
+                    variant="outline" 
+                    className={`
+                      font-bold px-3 py-1
+                      ${exercise.tier === 'A*' 
+                        ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-transparent' 
+                        : exercise.tier === 'A'
+                        ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-transparent'
+                        : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-transparent'
+                      }
+                    `}
+                  >
+                    {exercise.tier} TIER
+                  </Badge>
+                </div>
+              </div>
+            </motion.div>
+          </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh] pr-4">
-          <div className={`
-            relative h-48 w-full flex items-center justify-center mb-6 rounded-lg border
-            ${exercise.tier === 'S' ? 'bg-gradient-to-b from-white/90 to-white/80' : 'bg-white'}
-          `}>
+          {/* Image Section with border */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="relative h-48 w-full bg-white rounded-lg shadow-inner mb-6 border border-black/20"
+          >
             {exercise.image_url ? (
               <Image
                 src={exercise.image_url}
@@ -95,58 +108,100 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
                 <Info className="w-12 h-12 text-gray-400" />
               </div>
             )}
-          </div>
+          </motion.div>
+        </div>
 
-          <div className="space-y-6">
-            {['Overview', 'Key Points', 'Pro Tips'].map((section) => (
-              <div key={section} className={`
-                p-4 rounded-lg
-                ${exercise.tier === 'S' 
-                  ? 'bg-white/80 backdrop-blur-sm text-yellow-900' 
-                  : exercise.tier === 'A'
-                  ? 'bg-white/80 backdrop-blur-sm text-green-900'
-                  : exercise.tier === 'B'
-                  ? 'bg-white/80 backdrop-blur-sm text-blue-900'
-                  : 'bg-gray-100'
-                }
-              `}>
-                <h3 className="font-semibold text-lg mb-3">{section}</h3>
-                {section === 'Overview' && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {exercise.overview}
-                  </p>
-                )}
-                {section === 'Key Points' && (
-                  <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-2">
-                    {exercise.keyPoints.map((point, index) => (
-                      <li key={index}>{point}</li>
-                    ))}
-                  </ul>
-                )}
-                {section === 'Pro Tips' && (
-                  <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-2">
-                    {exercise.proTips.map((tip, index) => (
-                      <li key={index}>{tip}</li>
-                    ))}
-                  </ul>
-                )}
+        {/* Content Section */}
+        <ScrollArea className="max-h-[40vh]">
+          <div className="p-6 pt-0 space-y-4">
+            {/* Overview Section with border */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-black/20"
+            >
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {exercise.overview}
+              </p>
+            </motion.div>
+
+            {/* Combined Tips Section */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="grid grid-cols-1 gap-4"
+            >
+              {/* Key Points with border */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-black/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-lg text-gray-900">Key Points</h3>
+                </div>
+                <div className="grid gap-2">
+                  {exercise.keyPoints.map((point, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + (index * 0.1) }}
+                      className="bg-gray-50/80 rounded-md p-3 text-sm text-gray-600 border border-black/10"
+                    >
+                      {point}
+                    </motion.div>
+                  ))}
+                </div>
               </div>
-            ))}
+
+              {/* Pro Tips with border */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-black/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Lightbulb className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-lg text-gray-900">Pro Tips</h3>
+                </div>
+                <div className="grid gap-2">
+                  {exercise.proTips.map((tip, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + (index * 0.1) }}
+                      className="bg-gray-50/80 rounded-md p-3 text-sm text-gray-600 border border-black/10"
+                    >
+                      {tip}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           </div>
         </ScrollArea>
 
-        <Button 
-          onClick={() => console.log('Add to My Exercises:', exercise.name)}
-          className={`
-            w-full mt-6
-            ${exercise.tier === 'S' 
-              ? 'bg-yellow-600 hover:bg-yellow-700 text-white' 
-              : ''}
-          `}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add to My Exercises
-        </Button>
+        {/* Footer Button Section with border-top */}
+        <div className="p-6 pt-4 bg-white/80 backdrop-blur-sm border-t border-black/20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Button 
+              onClick={() => console.log('Add to My Exercises:', exercise.name)}
+              className={`
+                w-full font-semibold
+                ${exercise.tier === 'A*' 
+                  ? 'bg-yellow-600 hover:bg-yellow-700 text-white' 
+                  : exercise.tier === 'A'
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }
+              `}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add to My Exercises
+            </Button>
+          </motion.div>
+        </div>
       </DialogContent>
     </Dialog>
   )

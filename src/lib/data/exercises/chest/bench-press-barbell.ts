@@ -5,7 +5,7 @@ export const benchPressBarbell: ExerciseTemplate = {
   name: 'Bench Press - Barbell',
   muscle_group: 'Chest',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'The king of chest exercises, barbell bench press is a compound movement that builds overall upper body strength and muscle mass.',
   keyPoints: [
     'Retract shoulder blades',

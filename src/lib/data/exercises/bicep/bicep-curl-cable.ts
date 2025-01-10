@@ -5,7 +5,7 @@ export const bicepCurlCable: ExerciseTemplate = {
   name: 'Bicep Curl - Cable',
   muscle_group: 'Bicep',
   exercise_type: 'weights',
-  tier: 'S',
+  tier: 'A*',
   overview: 'A superior bicep exercise providing constant tension throughout the movement for maximum muscle activation.',
   keyPoints: [
     'Maintain constant tension',

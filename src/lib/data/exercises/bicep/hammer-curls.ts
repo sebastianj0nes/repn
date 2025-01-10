@@ -5,7 +5,7 @@ export const hammerCurls: ExerciseTemplate = {
   name: 'Hammer Curls',
   muscle_group: 'Bicep',
   exercise_type: 'weights',
-  tier: 'B',
+  tier: 'A',
   overview: 'A bicep variation that targets the brachialis and forearms while still engaging the biceps.',
   keyPoints: [
     'Keep palms facing each other',
