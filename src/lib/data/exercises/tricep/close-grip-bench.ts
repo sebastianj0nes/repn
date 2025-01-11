@@ -2,7 +2,7 @@ import { ExerciseTemplate } from '@/lib/types/exercise';
 
 export const closeGripBench: ExerciseTemplate = {
   id: 'close-grip-bench',
-  name: 'Close-Grip Bench',
+  name: 'Close-Grip Bench Press',
   muscle_group: 'Tricep',
   exercise_type: 'weights',
   tier: 'B',

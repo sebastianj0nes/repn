@@ -1,8 +1,8 @@
 import { ExerciseTemplate } from '@/lib/types/exercise';
 
 export const bentOverRows: ExerciseTemplate = {
-  id: 'bent-over-rows',
-  name: 'Bent-Over Rows',
+  id: 'barbell-rows',
+  name: 'Barbell Rows',
   muscle_group: 'Back',
   exercise_type: 'weights',
   tier: 'A',

@@ -2,7 +2,7 @@ import { ExerciseTemplate } from '@/lib/types/exercise';
 
 export const plank: ExerciseTemplate = {
   id: 'plank',
-  name: 'Plank',
+  name: 'Planks',
   muscle_group: 'Core',
   exercise_type: 'bodyweight',
   tier: 'A*',

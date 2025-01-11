@@ -2,7 +2,7 @@ import { ExerciseTemplate } from '@/lib/types/exercise';
 
 export const rdl: ExerciseTemplate = {
   id: 'rdl',
-  name: 'RDL',
+  name: 'RDL - Romanian Deadlift',
   muscle_group: 'Legs',
   exercise_type: 'weights',
   tier: 'A*',
