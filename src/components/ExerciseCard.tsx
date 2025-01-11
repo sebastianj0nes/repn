@@ -176,15 +176,17 @@ export const ExerciseCard = forwardRef<HTMLDivElement, ExerciseCardProps>(
           </Card>
         </motion.div>
 
-        <ExerciseDetailDialog
-          exercise={{
-            ...exercise,
-            ...getExerciseDetails(exercise.name),
-            image_url: exerciseImage || exercise.image_url,
-          }}
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-        />
+        {isDialogOpen && (
+          <ExerciseDetailDialog
+            exercise={{
+              ...exercise,
+              ...getExerciseDetails(exercise.name),
+              image_url: exerciseImage || exercise.image_url,
+            }}
+            isOpen={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+          />
+        )}
       </div>
     )
   }

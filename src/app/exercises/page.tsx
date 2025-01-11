@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Database } from '@/lib/database.types'
 import { DumbbellIcon } from 'lucide-react'
 import { ExerciseCard } from '@/components/ExerciseCard'
-import { getExerciseStats } from '@/lib/api/exercises'
 import { ExerciseTier } from '@/lib/types/exercise'
 import { getExerciseDetails } from '@/lib/data/exercises'
 import { FilterControls } from '@/components/exercises/FilterControls'
@@ -48,12 +47,11 @@ export default function ExercisesPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        const [exercisesResponse, stats] = await Promise.all([
+        const [exercisesResponse] = await Promise.all([
           supabase
             .from('exercises_library')
             .select('*')
             .order('name'),
-          getExerciseStats(user.id)
         ])
 
         if (exercisesResponse.error) throw exercisesResponse.error
@@ -65,7 +63,6 @@ export default function ExercisesPage() {
         }))
 
         setExercises(exercisesWithTiers)
-        setExerciseStats(stats)
       } catch (error) {
         console.error('Error fetching data:', error)
       } finally {

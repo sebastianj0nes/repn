@@ -111,14 +111,14 @@ export function ExerciseDetailDialog({ exercise, isOpen, onClose }: ExerciseDeta
                 <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger 
                     value="overview"
-                    className="hover:bg-black/10 transition-all duration-200"
+                    className="data-[state=active]:bg-black/10 hover:bg-black/10 transition-all duration-200"
                   >
                     <Info className="h-4 w-4 mr-2" />
                     Overview
                   </TabsTrigger>
                   <TabsTrigger 
                     value="history"
-                    className="hover:bg-black/10 transition-all duration-200"
+                    className="data-[state=active]:bg-black/10 hover:bg-black/10 transition-all duration-200"
                   >
                     <History className="h-4 w-4 mr-2" />
                     History
