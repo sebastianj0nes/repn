@@ -29,6 +29,10 @@ interface ExerciseStats {
   last_performed: string
 }
 
+interface StatsData {
+  workouts: any[];  // Using any[] since we only need the length
+}
+
 export default function ExercisesPage() {
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('All')
@@ -37,6 +41,7 @@ export default function ExercisesPage() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [loading, setLoading] = useState(true)
   const [exerciseStats, setExerciseStats] = useState<Record<string, ExerciseStats>>({})
+  const [statsData, setStatsData] = useState<StatsData | null>(null)
   
   const supabase = createClientComponentClient<Database>()
 
@@ -47,22 +52,26 @@ export default function ExercisesPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        const [exercisesResponse] = await Promise.all([
+        const [exercisesResponse, statsResponse] = await Promise.all([
           supabase
             .from('exercises_library')
             .select('*')
             .order('name'),
+          supabase.rpc('get_user_stats', {
+            user_id: user.id
+          })
         ])
 
         if (exercisesResponse.error) throw exercisesResponse.error
+        if (statsResponse.error) throw statsResponse.error
         
-        // Map exercises and assign tiers based on exercise details
         const exercisesWithTiers = exercisesResponse.data.map(exercise => ({
           ...exercise,
           tier: getExerciseDetails(exercise.name).tier || 'C'
         }))
 
         setExercises(exercisesWithTiers)
+        setStatsData(statsResponse.data)
       } catch (error) {
         console.error('Error fetching data:', error)
       } finally {
@@ -105,6 +114,27 @@ export default function ExercisesPage() {
       <div className="container mx-auto px-4 py-6 pb-20">
         <h1 className="text-2xl font-bold mb-4">Exercise Library</h1>
         
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-6"
+        >
+          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-lg p-6 text-center border border-primary/20">
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+                Total Workouts
+              </span>
+              <div className="relative">
+                <span className="text-4xl font-bold text-primary">
+                  {statsData?.workouts?.length || 0}
+                </span>
+                <div className="absolute -inset-1 bg-primary/5 blur-sm rounded-full -z-10" />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         <div className="mb-2">
           <TierExplanationDialog />
         </div>

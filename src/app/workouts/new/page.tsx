@@ -1257,46 +1257,94 @@ export default function NewWorkoutPage() {
               <motion.h2
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-3xl font-bold mb-6 text-center text-primary"
+                className="text-2xl md:text-3xl font-bold mb-4 text-center text-primary"
               >
                 How was your workout today?
               </motion.h2>
               <WorkoutFeelingTip />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-3 gap-2 md:gap-6 mt-4">
                 {[
-                  { type: 'bad', icon: ThumbsDown, label: 'Challenging Day', description: 'Weights feeling heavy, struggled with sets', color: 'red' },
-                  { type: 'okay', icon: Meh, label: 'Steady Session', description: 'Weights moving consistently, maintained performance', color: 'primary' },
-                  { type: 'great', icon: ThumbsUp, label: 'Energized Workout', description: 'Feeling strong, possibly hit new personal bests', color: 'green' },
-                ].map((feeling) => (
+                  { 
+                    type: 'bad', 
+                    icon: ThumbsDown, 
+                    label: 'Tough Day', 
+                    description: 'Not feeling it today', 
+                    color: 'red',
+                    gradient: 'from-red-500/10 via-red-400/10 to-red-500/10',
+                    border: 'border-red-500/20',
+                    iconColor: 'text-red-500'
+                  },
+                  { 
+                    type: 'okay', 
+                    icon: Meh, 
+                    label: 'Steady', 
+                    description: 'Getting it done', 
+                    color: 'blue',
+                    gradient: 'from-blue-500/10 via-blue-400/10 to-blue-500/10',
+                    border: 'border-blue-500/20',
+                    iconColor: 'text-blue-500'
+                  },
+                  { 
+                    type: 'great', 
+                    icon: ThumbsUp, 
+                    label: 'Crushed It!', 
+                    description: 'Feeling strong', 
+                    color: 'green',
+                    gradient: 'from-green-500/10 via-green-400/10 to-green-500/10',
+                    border: 'border-green-500/20',
+                    iconColor: 'text-green-500'
+                  }
+                ].map((feeling, index) => (
                   <motion.div
                     key={feeling.type}
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ 
+                      duration: 0.3,
+                      delay: index * 0.1,
+                      type: "spring",
+                      stiffness: 100
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     className="h-full"
                   >
                     <Card
-                      className={`cursor-pointer transition-all duration-300 h-full flex flex-col ${
-                        workout?.feeling === feeling.type
-                          ? `ring-2 ring-${feeling.color}-500 shadow-lg`
-                          : "hover:shadow-md"
-                      }`}
-                      onClick={() => setWorkout(prev => prev ? { ...prev, feeling: feeling.type as 'bad' | 'okay' | 'great' } : null)}
+                      className={cn(
+                        "cursor-pointer transition-all duration-300 h-full",
+                        "hover:shadow-lg border",
+                        "relative overflow-hidden",
+                        workout?.feeling === feeling.type ? `${feeling.border} shadow-lg` : "hover:border-gray-300",
+                        workout?.feeling === feeling.type && `bg-gradient-to-br ${feeling.gradient}`
+                      )}
+                      onClick={() => setWorkout(prev => 
+                        prev ? { ...prev, feeling: feeling.type as 'bad' | 'okay' | 'great' } : null
+                      )}
                     >
-                      <CardContent className="p-6 flex flex-col items-center text-center flex-grow">
+                      <CardContent className="p-3 md:p-6 flex flex-col items-center text-center h-full">
                         <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="mb-4"
+                          animate={
+                            workout?.feeling === feeling.type 
+                              ? { 
+                                  scale: [1, 1.2, 1],
+                                  rotate: [0, 10, -10, 0]
+                                }
+                              : {}
+                          }
+                          transition={{ duration: 0.5 }}
+                          className="mb-2 md:mb-4"
                         >
                           <feeling.icon
-                            className={`h-16 w-16 ${
-                              workout?.feeling === feeling.type ? `text-${feeling.color}-500` : "text-muted-foreground"
-                            }`}
+                            className={cn(
+                              "h-8 w-8 md:h-12 md:w-12",
+                              workout?.feeling === feeling.type ? feeling.iconColor : "text-muted-foreground"
+                            )}
                           />
                         </motion.div>
-                        <h3 className="text-xl font-semibold mb-2">{feeling.label}</h3>
-                        <p className="text-muted-foreground flex-grow">{feeling.description}</p>
+                        <h3 className="text-sm md:text-lg font-semibold mb-1">{feeling.label}</h3>
+                        <p className="text-xs md:text-sm text-muted-foreground hidden md:block">
+                          {feeling.description}
+                        </p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -1306,13 +1354,16 @@ export default function NewWorkoutPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="mt-8 flex justify-center"
+                className="mt-6 flex justify-center"
               >
                 <Button
                   size="lg"
                   disabled={!workout?.feeling}
                   onClick={() => goToNextStep()}
-                  className="px-8 py-2 text-lg"
+                  className={cn(
+                    "px-8 py-2 text-lg transition-all duration-300",
+                    workout?.feeling && "animate-pulse"
+                  )}
                 >
                   Continue
                 </Button>
@@ -1494,6 +1545,21 @@ export default function NewWorkoutPage() {
       }
     };
 
+    const addSet = (isDropSet: boolean = false) => {
+      setEditedExercise(prev => ({
+        ...prev,
+        sets: [...prev.sets, { isDropSet, isSetOfTheDay: false }]
+      }));
+    };
+
+    // Add remove set function
+    const removeSet = (index: number) => {
+      setEditedExercise(prev => ({
+        ...prev,
+        sets: prev.sets.filter((_, i) => i !== index)
+      }));
+    };
+
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
@@ -1520,7 +1586,19 @@ export default function NewWorkoutPage() {
         </Select>
 
         {editedExercise.sets.map((set, index) => (
-          <div key={index} className="space-y-4">
+          <div key={index} className="space-y-4 mb-6 border-b pb-6 last:border-b-0">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-semibold">Set {index + 1}</h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeSet(index)}
+                className="text-red-500 hover:text-red-700 hover:bg-red-100/50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               {editedExercise.exercise_type === 'weights' && (
                 <>
@@ -1580,7 +1658,8 @@ export default function NewWorkoutPage() {
                 </div>
               )}
             </div>
-            <div className="flex flex-wrap gap-4 items-center">
+
+            <div className="flex flex-wrap gap-4 items-center mt-2">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id={`edit-dropset-${index}`}
@@ -1633,9 +1712,22 @@ export default function NewWorkoutPage() {
             )}
           </div>
         ))}
-        <div className="flex space-x-2">
-          <Button onClick={() => onSave(editedExercise)}>Save</Button>
+        <div className="flex space-x-2 mt-4">
+          <Button onClick={() => addSet()} variant="outline" className="w-1/2">
+            <Plus className="mr-2 h-4 w-4" /> Add Set
+          </Button>
+          <Button onClick={() => addSet(true)} variant="outline" className="w-1/2">
+            <Zap className="mr-2 h-4 w-4" /> Add Dropset
+          </Button>
+        </div>
+        <div className="flex justify-end space-x-2 pt-6">
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button 
+            onClick={() => onSave(editedExercise)}
+            className="bg-green-500 hover:bg-green-600 text-white"
+          >
+            Save
+          </Button>
         </div>
       </div>
     );
