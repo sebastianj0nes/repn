@@ -131,3 +131,12 @@ input, textarea, select {
 .animate-slideOut {
   animation: slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+@keyframes shine {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(200%);
+  }
+}

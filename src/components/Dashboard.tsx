@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, ChartBar, TrendingUp, LogOut, Plus, Zap, Moon, Utensils, Battery, Flame, Target, ChevronRight, Info, ChartBarIcon, ListIcon } from "lucide-react"
+import { Dumbbell, ChartBar, Trophy, LogOut, Plus, Zap, Moon, Utensils, Battery, Flame, Target, ChevronRight, Info } from "lucide-react"
 import { UserContext } from '@/app/UserContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
@@ -155,16 +155,38 @@ export default function Dashboard() {
         </Card>
       </motion.div>
 
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="mb-6"
+      >
+        <Link href="/quests">
+          <Card className="hover:shadow-lg transition-shadow bg-gradient-to-r from-yellow-500/10 to-orange-500/10">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Trophy className="h-6 w-6 text-primary" />
+                <div>
+                  <h3 className="font-semibold">Quests</h3>
+                  <p className="text-sm text-muted-foreground">Complete challenges, earn rewards</p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-primary" />
+            </CardContent>
+          </Card>
+        </Link>
+      </motion.div>
+
       <div className="grid grid-cols-2 gap-4 mb-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5 }}
         >
           <Link href="/progress">
             <Card className="h-full hover:shadow-lg transition-shadow">
               <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                <ChartBarIcon className="h-8 w-8 mb-2 text-primary" />
+                <ChartBar className="h-8 w-8 mb-2 text-primary" />
                 <h3 className="font-semibold">Progress</h3>
               </CardContent>
             </Card>
@@ -176,32 +198,16 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Link href="/stats">
+          <Link href="/exercises">
             <Card className="h-full hover:shadow-lg transition-shadow">
               <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                <ListIcon className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold">Stats</h3>
+                <Dumbbell className="h-8 w-8 mb-2 text-primary" />
+                <h3 className="font-semibold">Exercises</h3>
               </CardContent>
             </Card>
           </Link>
         </motion.div>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="mb-6"
-      >
-        <Link href="/exercises">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-              <Dumbbell className="h-8 w-8 mb-2 text-primary" />
-              <h3 className="font-semibold">Exercises</h3>
-            </CardContent>
-          </Card>
-        </Link>
-      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -220,7 +226,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </Link>
-
       </motion.div>
 
       <motion.div

@@ -8,6 +8,7 @@ import { TipProvider } from '@/context/TipContext'
 import '@/app/globals.css'
 import { ImageHandler } from '@/lib/utils/imageHandler'
 import ImageCacheCleanup from '@/components/ImageCacheCleanup'
+import { QuestProvider } from '@/contexts/QuestContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -36,7 +37,9 @@ export default function RootLayout({
           <TipProvider>
             <AuthWrapper>
               <ImageCacheCleanup />
-              <main>{children}</main>
+              <QuestProvider>
+                <main>{children}</main>
+              </QuestProvider>
             </AuthWrapper>
           </TipProvider>
         </Providers>

@@ -47,6 +47,9 @@ import {
 } from '@/lib/utils/exerciseImages'
 import { cn } from '@/lib/utils'
 import { getExerciseDetails } from '@/lib/data/exercises'
+import { QuestTracker } from '@/lib/quests/questTracker'
+import { useQuests } from '@/contexts/QuestContext'
+import { QuestCompletionNotice } from '@/components/quests/QuestCompletionNotice'
 
 interface Set {
   weight?: number | null;
@@ -151,6 +154,8 @@ export default function NewWorkoutPage() {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
   const [selectedExercise, setSelectedExercise] = useState('');
   const [suggestedExercises, setSuggestedExercises] = useState<Exercise[]>([]);
+  const { refreshQuests, activeQuests } = useQuests()
+  const [completedQuestsCount, setCompletedQuestsCount] = useState(0)
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -400,17 +405,17 @@ export default function NewWorkoutPage() {
     }
   }
 
-  const finishWorkout = async () => {
-    if (!session?.user) {
-      alert('You must be logged in to save a workout.')
-      return
-    }
-
-    setIsSubmitting(true)
-
-    const supabase = createClientComponentClient<Database>()
-
+  const handleWorkoutSubmit = async () => {
     try {
+      if (!session?.user) {
+        alert('You must be logged in to save a workout.')
+        return
+      }
+
+      setIsSubmitting(true)
+
+      const supabase = createClientComponentClient<Database>()
+
       let image_url = null
       if (image) {
         try {
@@ -498,10 +503,14 @@ export default function NewWorkoutPage() {
 
       if (transactionError) throw transactionError
 
-      // Set progress to 100% on successful submission
+      // Track workout and get newly completed quests
+      const completedQuests = await QuestTracker.trackWorkoutCompletion(session.user.id)
+      console.log('Completed quests from tracker:', completedQuests)
+      
+      setCompletedQuestsCount(completedQuests.length)
       setProgress(100)
       setIsFinished(true)
-      
+
       // Clear localStorage after successful submission
       localStorage.removeItem('workoutProgress')
       localStorage.removeItem('workoutImage')
@@ -520,6 +529,23 @@ export default function NewWorkoutPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Add debug log for render
+  console.log('Render - completedQuestsCount:', completedQuestsCount)
+
+  // Helper function to check if an exercise set a personal best
+  const checkIfPersonalBest = async (userId: string, exercise: any) => {
+    const { data: previousMaxWeight } = await supabase
+      .from('exercises')
+      .select('max_weight')
+      .eq('user_id', userId)
+      .eq('exercise_id', exercise.exercise_id)
+      .order('max_weight', { ascending: false })
+      .limit(1)
+      .single()
+
+    return previousMaxWeight ? exercise.max_weight > previousMaxWeight.max_weight : true
   }
 
   const FeelingEmoji = ({ feeling }: { feeling: 'great' | 'okay' | 'bad' }) => {
@@ -1438,7 +1464,7 @@ export default function NewWorkoutPage() {
                 )}
               </div>
               <Button 
-                onClick={finishWorkout} 
+                onClick={handleWorkoutSubmit} 
                 className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white"
                 disabled={isSubmitting}
               >
@@ -1905,6 +1931,11 @@ export default function NewWorkoutPage() {
           <Confetti />
           <h2 className="text-3xl font-bold text-gray-800 mb-4">Workout Complete!</h2>
           <p className="text-xl text-center mb-8 text-gray-600">Great job on your workout. Keep up the good work!</p>
+          
+          {completedQuestsCount > 0 && (
+            <QuestCompletionNotice questCount={completedQuestsCount} />
+          )}
+
           <motion.div animate={buttonControls}>
             <Button asChild className="w-full max-w-md bg-blue-500 hover:bg-blue-600 text-white">
               <Link href="/progress">View Your Progress</Link>
