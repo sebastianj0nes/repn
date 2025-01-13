@@ -42,6 +42,7 @@ export default function ExercisesPage() {
   const [loading, setLoading] = useState(true)
   const [exerciseStats, setExerciseStats] = useState<Record<string, ExerciseStats>>({})
   const [statsData, setStatsData] = useState<StatsData | null>(null)
+  const [weeklyWorkouts, setWeeklyWorkouts] = useState<number>(0)
   
   const supabase = createClientComponentClient<Database>()
 
@@ -52,19 +53,35 @@ export default function ExercisesPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        const [exercisesResponse, statsResponse] = await Promise.all([
+        // Get start of today
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        
+        // Get start of 7 days ago
+        const sevenDaysAgo = new Date(today)
+        sevenDaysAgo.setDate(today.getDate() - 6) // -6 to include today (making it 7 days total)
+
+        const [exercisesResponse, statsResponse, weeklyWorkoutsResponse] = await Promise.all([
           supabase
             .from('exercises_library')
             .select('*')
             .order('name'),
           supabase.rpc('get_user_stats', {
             user_id: user.id
-          })
+          }),
+          supabase
+            .from('workouts')
+            .select('id, date')
+            .gte('date', sevenDaysAgo.toISOString())
+            .lt('date', new Date(today.getTime() + 24*60*60*1000).toISOString()) // Include full current day
+            .eq('user_id', user.id)
         ])
 
         if (exercisesResponse.error) throw exercisesResponse.error
         if (statsResponse.error) throw statsResponse.error
+        if (weeklyWorkoutsResponse.error) throw weeklyWorkoutsResponse.error
         
+        setWeeklyWorkouts(weeklyWorkoutsResponse.data.length)
         const exercisesWithTiers = exercisesResponse.data.map(exercise => ({
           ...exercise,
           tier: getExerciseDetails(exercise.name).tier || 'C'
@@ -118,17 +135,22 @@ export default function ExercisesPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-6"
+          className="mb-4"
         >
-          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-lg p-6 text-center border border-primary/20">
+          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-lg p-4 text-center border border-primary/20">
             <div className="flex flex-col items-center justify-center">
-              <span className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+              <span className="text-sm text-muted-foreground uppercase tracking-wider">
                 Total Workouts
               </span>
-              <div className="relative">
-                <span className="text-4xl font-bold text-primary">
+              <div className="relative flex items-center justify-center w-full">
+                <span className="text-3xl font-bold text-primary">
                   {statsData?.workouts?.length || 0}
                 </span>
+                {weeklyWorkouts > 0 && (
+                  <span className="absolute right-6 text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    +{weeklyWorkouts} in last 7 days 
+                  </span>
+                )}
                 <div className="absolute -inset-1 bg-primary/5 blur-sm rounded-full -z-10" />
               </div>
             </div>
