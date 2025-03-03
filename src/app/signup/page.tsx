@@ -22,34 +22,33 @@ export default function SignUp() {
     setIsLoading(true);
 
     try {
+      console.log('Starting signup process...');
+      
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
-            full_name: name,
-            name: name,
+            full_name: name
           }
         },
       });
 
       if (signUpError) {
+        console.error('Detailed signup error:', signUpError);
         toast.error(signUpError.message);
-        console.error('Signup error:', signUpError);
         return;
       }
 
-      if (data.user && data.user.identities && data.user.identities.length === 0) {
-        toast.error('This email is already registered.');
+      if (!data.user) {
+        toast.error('No user data returned');
         return;
       }
 
-      // Show success message and redirect
-      if (data.user) {
-        toast.success('Please check your email to confirm your account');
-        router.push('/signin');
-      }
+      toast.success('Please check your email to confirm your account');
+      router.push('/signin');
+
     } catch (error) {
       console.error('Error during signup:', error);
       toast.error('Something went wrong during signup');
