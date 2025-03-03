@@ -72,7 +72,7 @@ export function PlateauAlert({
       case 'low':
         return {
           container: 'bg-blue-50 border border-blue-200',
-          badge: 'border-blue-200 bg-blue-100 text-blue-700',
+          badge: 'border-blue-200 text-blue-700',
           icon: 'text-blue-600'
         }
       default:
