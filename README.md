@@ -7,7 +7,7 @@ Using React, we utilise components to build the application, so you will see cod
 The application is broken down into these separate components and then displayed on the relevant page.
 
 In the /src/app directory, this is where the actual paths of the website are created. Next.Js' router system means that
-any folder with a page.tsx file in will be a path available in the Repn web-app. 
+within the /app directory - any folder with a page.tsx file in will be a path available in the Repn web-app. 
 For example, you can see there is a directory path /src/app/exercises - the code in this file is displayed in the repn.xyz/exercises path.
 
 # Summary
