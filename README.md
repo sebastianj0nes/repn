@@ -15,6 +15,6 @@ To see how each page functions, I would recommend viewing the following page dir
 1. src/app/workouts - view the code powering the workout functionality works. (https://www.repn.xyz/workouts)
 2. src/app/exercises - view the code behind exercises page functionality. (https://www.repn.xyz/exercises)
 3. src/app/progress - the code behind progress page and insights. (https://www.repn.xyz/progress)
-4. 
 
+These 3 directories are the main pages in the Repn app.
 
